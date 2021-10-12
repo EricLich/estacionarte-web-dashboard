@@ -28,14 +28,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
 import './assets/tailwind.css'
+/* import auth from '@/utils/firebaseSetup' */
+import firebase from 'firebase/app'
+
 
 export default defineComponent({
   setup() {
 
-     let user = ref(1) 
+    let user = ref(1) 
 
+    
+
+    
 
     return{
       user
