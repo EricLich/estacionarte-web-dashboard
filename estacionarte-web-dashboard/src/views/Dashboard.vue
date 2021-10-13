@@ -6,7 +6,7 @@
             <div @click="changeTab(tabs.ADMIN)" :class="{'active-tab' : (activeTab == tabs.ADMIN)}" class="tab text-3xl mr-10 text-gray-300">Administrar Espacios</div>
         </div>
         <div class="h-auto py-4 px-8 bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
-            <input type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
+            <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar"/>   
@@ -24,8 +24,8 @@
                 </div>             
             </div>
 
-            <div v-if="activeTab == tabs.ADMIN" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
-                lalala
+            <div v-if="activeTab == tabs.ADMIN" class="parked-spots h-full grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
+                <AdminSpots :spots="spots"/>
             </div>
         </div>
     </div>
@@ -35,14 +35,17 @@
 import { computed, defineComponent, reactive, ref, watch } from 'vue';
 import ParkedCar from '@/components/ParkedCar.vue';
 import Reserve from '@/components/Reserve.vue';
+import AdminSpots from '@/components/AdminSpots.vue'
 import Parked from '@/interfaces/Parked';
 import Reservation from '@/interfaces/Reservation';
+import ParkingSpot from '@/interfaces/ParkingSpot';
 
 
 export default defineComponent({
     components:{
         ParkedCar: ParkedCar,
-        Reserve: Reserve
+        Reserve: Reserve,
+        AdminSpots: AdminSpots
     },
     setup(props) {    
         
@@ -170,6 +173,57 @@ export default defineComponent({
             },
         ])
 
+        let spots = ref<ParkingSpot[]>([
+            {
+               id: 1,
+               spotName: "Spot 1",
+               type: 1,
+               idUser: 1,
+               idVehicle: 1,
+               available: true 
+            },
+            {
+               id: 2,
+               spotName: "Spot 2",
+               type: 1,
+               idUser: 2,
+               idVehicle: 3,
+               available: true 
+            },
+            {
+               id: 3,
+               spotName: "Spot 3",
+               type: 2,
+               idUser: 3,
+               idVehicle: 6,
+               available: true 
+            },
+            {
+               id: 4,
+               spotName: "Spot 4",
+               type: 1,
+               idUser: 1,
+               idVehicle: 1,
+               available: true 
+            },
+            {
+               id: 5,
+               spotName: "Spot 5",
+               type: 1,
+               idUser: 1,
+               idVehicle: 1,
+               available: true 
+            },
+            {
+               id: 6,
+               spotName: "Spot 6",
+               type: 1,
+               idUser: 1,
+               idVehicle: 1,
+               available: true 
+            },
+        ])
+
         let parkedCount = computed<Number>(() => {
             return parkedCars.value.length;
         })
@@ -207,8 +261,9 @@ export default defineComponent({
             reservations,
             parkedCount,
             reserveCount,
+            spots,
             changeTab,
-        
+
         }
     },
 })
