@@ -9,17 +9,16 @@
           </router-link>
         </div>
 
-        <div v-if="user == null"  class="nav-links-not-loged">
-          <router-link to="/login" class="mr-4">Login</router-link>
-          <router-link to="/signup">Registrarse</router-link>
-        </div>
 
-        <div v-if="user" class="nav-links-loged">
+        <div v-if="userSignedIn" class="nav-links-loged">
           <router-link to="/profile" class="mr-4">Perfil</router-link>
           <router-link to="/dashboard" class="mr-4">Dashboard</router-link>
-          <router-link to="/" @click="user = null" class="text-red-500">Cerrar Sesión</router-link>
+          <button @click.prevent="signOut" class="text-red-500">Cerrar Sesión</button>
         </div>
-
+        <div v-else class="nav-links-not-loged">
+          <router-link to="/login" class="">Login</router-link>
+          <router-link to="/signup" class="ml-4">Registrarse</router-link>
+        </div>
       </div>
     </div>  
   </header>
@@ -27,24 +26,56 @@
 </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
+<script >
+import { defineComponent, onBeforeMount, ref, watch } from 'vue'
 import './assets/tailwind.css'
 /* import auth from '@/utils/firebaseSetup' */
-import firebase from 'firebase/app'
+import firebase from 'firebase/compat/app'
+import { useRoute, useRouter } from 'vue-router';
 
 
 export default defineComponent({
-  setup() {
-
-    let user = ref(1) 
-
+    setup() {
     
-
+    let userUid = ref('');
+    let userSignedIn = ref(false);
+    const router = useRouter();
     
+    onBeforeMount( () => {
+       firebase.auth().onAuthStateChanged((user) => {
+        if(!user){
+          userSignedIn.value = false
+          console.log("no hay")
+          router.replace('/login')        
+        }else{
+          router.replace('/dashboard')
+          userSignedIn.value = true
+          userUid.value = user.uid
+        }
+      })
+    })
+
+    watch((userUid) => {
+      if(userUid.value != ''){
+        userSignedIn.value = true;  
+      }else{
+        userSignedIn.value = false;
+      }
+    })
+
+
+    const signOut = () => {
+      firebase.auth().signOut();
+      userUid.value = ''
+      userSignedIn.value = false;
+      router.push('/')
+    }
+
 
     return{
-      user
+      userUid,
+      userSignedIn,
+      signOut,
     }
   },
 })

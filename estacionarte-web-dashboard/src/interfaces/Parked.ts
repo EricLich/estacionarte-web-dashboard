@@ -1,4 +1,4 @@
-export default interface Parked{
+export default interface ParkedVehicle{
     id: Number,
     licensePlate: String,
     timePassed: Number,

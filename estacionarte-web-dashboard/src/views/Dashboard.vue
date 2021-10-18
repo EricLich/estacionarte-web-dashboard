@@ -24,7 +24,7 @@
                 </div>             
             </div>
 
-            <div v-if="activeTab == tabs.ADMIN" class="parked-spots h-full grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
+            <div v-if="activeTab == tabs.ADMIN" class="parked-spots h-full grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-2">
                 <AdminSpots :spots="spots"/>
             </div>
         </div>
@@ -40,14 +40,15 @@ import Parked from '@/interfaces/Parked';
 import Reservation from '@/interfaces/Reservation';
 import ParkingSpot from '@/interfaces/ParkingSpot';
 
-
 export default defineComponent({
     components:{
         ParkedCar: ParkedCar,
         Reserve: Reserve,
         AdminSpots: AdminSpots
     },
-    setup(props) {    
+    setup(props) {  
+
+
         
         let inputValue = ref('')
 
@@ -56,7 +57,7 @@ export default defineComponent({
             RESERVED: 'tab-reserved' as String,
             ADMIN: 'tab-admin' as String,
         }
-        
+
         let activeTab = ref<String>(tabs.PARKED);
 
         let parkedCars = ref<Parked[]>([
@@ -280,3 +281,7 @@ export default defineComponent({
     }
 
 </style>
+
+function created() {
+  throw new Error('Function not implemented.');
+}
