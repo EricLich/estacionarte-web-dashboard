@@ -1,5 +1,5 @@
 <template>
-    <div class="flex self-start flex-col bg-white border-2 rounded-md w-full h-full mt-5 shadow-lg p-10">
+    <div class="flex self-start flex-col bg-white border-2 rounded-md w-full h-full mt-4 shadow-lg p-10">
         <h3 class="text-2xl text-left">Agregar espacio de estacionamiento</h3>
         <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6">
             <div class="mb-4">

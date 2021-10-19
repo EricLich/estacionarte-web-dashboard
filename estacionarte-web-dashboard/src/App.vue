@@ -1,19 +1,19 @@
 <template>
 <div>
-  <header>
+  <header class="shadow-xl rounded-b-md">
     <div class="container">
       <div id="nav">
         <div class="logo">
           <router-link to="/" class="link-home">
-            <h1 class="text-3xl">Estacionarte</h1>
+            <h1 class="text-3xl font-bold">Estacionarte</h1>
           </router-link>
         </div>
 
 
-        <div v-if="userSignedIn" class="nav-links-loged">
+        <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged">
           <router-link to="/profile" class="mr-4">Perfil</router-link>
           <router-link to="/dashboard" class="mr-4">Dashboard</router-link>
-          <button @click.prevent="signOut" class="text-red-500">Cerrar Sesión</button>
+          <button @click.prevent="signOut" class="text-white text-lg font-bold bg-red-500 p-3 rounded-lg shadow-md hover:bg-red-600 duration-75">Cerrar Sesión</button>
         </div>
         <div v-else class="nav-links-not-loged">
           <router-link to="/login" class="">Login</router-link>
@@ -27,56 +27,39 @@
 </template>
 
 <script >
-import { defineComponent, onBeforeMount, ref, watch } from 'vue'
+import { defineComponent, onBeforeMount, provide, ref } from 'vue'
 import './assets/tailwind.css'
-/* import auth from '@/utils/firebaseSetup' */
 import firebase from 'firebase/compat/app'
 import { useRoute, useRouter } from 'vue-router';
+import store from '@/store/index'
 
 
 export default defineComponent({
     setup() {
-    
-    let userUid = ref('');
-    let userSignedIn = ref(false);
-    const router = useRouter();
-    
-    onBeforeMount( () => {
-       firebase.auth().onAuthStateChanged((user) => {
-        if(!user){
-          userSignedIn.value = false
-          console.log("no hay")
-          router.replace('/login')        
-        }else{
-          router.replace('/dashboard')
-          userSignedIn.value = true
-          userUid.value = user.uid
-        }
+
+      provide('store', store)
+      const router = useRouter();
+      const hola = ref('hola')
+
+      onBeforeMount(() => {
+         firebase.auth().onAuthStateChanged((userFB) => {
+          if(!userFB){
+            router.replace('/login')
+          }
+        })
       })
-    })
 
-    watch((userUid) => {
-      if(userUid.value != ''){
-        userSignedIn.value = true;  
-      }else{
-        userSignedIn.value = false;
+      const signOut = () => {
+        firebase.auth().signOut();
+        store.methods.resetUser();
+        router.push('/login')
       }
-    })
 
 
-    const signOut = () => {
-      firebase.auth().signOut();
-      userUid.value = ''
-      userSignedIn.value = false;
-      router.push('/')
-    }
-
-
-    return{
-      userUid,
-      userSignedIn,
-      signOut,
-    }
+      return{
+        store,
+        signOut,
+      }
   },
 })
 </script>
@@ -94,11 +77,11 @@ export default defineComponent({
 
 header{
   width: 100%;
-  background-color: #9B9B9B;
+  background-color: #004360;
 }
 
 .container{
-  width: 85%;
+  width: 90%;
   margin: auto;
 }
 
@@ -138,7 +121,7 @@ header{
 }
 
 .nav-links-loged{
-  width: 30%;
+  width: 35%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -154,6 +137,6 @@ header{
 
 
 .nav-links-not-loged a.router-link-exact-active, .nav-links-loged a.router-link-exact-active{
-  color: black;
+  color: rgb(179, 179, 179);
 }
 </style>

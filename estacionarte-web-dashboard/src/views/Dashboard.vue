@@ -5,7 +5,7 @@
             <div @click="changeTab(tabs.RESERVED)" :class="{'active-tab' : (activeTab == tabs.RESERVED)}" class="tab text-3xl mr-10 text-gray-300">Reservas Pendientes ({{ reserveCount }})</div>
             <div @click="changeTab(tabs.ADMIN)" :class="{'active-tab' : (activeTab == tabs.ADMIN)}" class="tab text-3xl mr-10 text-gray-300">Administrar Espacios</div>
         </div>
-        <div class="h-auto py-4 px-8 bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
+        <div class="h-auto py-4 px-8 text-lg bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
             <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
@@ -32,13 +32,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, watch } from 'vue';
+import { computed, defineComponent, reactive, ref, watch, inject } from 'vue';
 import ParkedCar from '@/components/ParkedCar.vue';
 import Reserve from '@/components/Reserve.vue';
 import AdminSpots from '@/components/AdminSpots.vue'
 import Parked from '@/interfaces/Parked';
 import Reservation from '@/interfaces/Reservation';
 import ParkingSpot from '@/interfaces/ParkingSpot';
+import { useRoute } from 'vue-router';
 
 export default defineComponent({
     components:{
@@ -47,9 +48,7 @@ export default defineComponent({
         AdminSpots: AdminSpots
     },
     setup(props) {  
-
-
-        
+        const store = inject('store')
         let inputValue = ref('')
 
         let tabs = {
@@ -252,9 +251,8 @@ export default defineComponent({
             }
         })
 
-        //usar activeTab para ver que listado filtrar para la busqueda
-
         return{
+            store,
             tabs,
             activeTab,
             inputValue,
@@ -274,6 +272,7 @@ export default defineComponent({
 
     .active-tab{
         color: black;
+        font-weight: bold;
     }
 
     .tab:hover{
@@ -282,6 +281,3 @@ export default defineComponent({
 
 </style>
 
-function created() {
-  throw new Error('Function not implemented.');
-}
