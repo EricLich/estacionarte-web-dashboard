@@ -28,6 +28,9 @@ const getters = {
   },
   getUserSignedIn(){
     return state.userSignedIn;
+  },
+  getParkingName(){
+    return state.user.parkingName;
   }
 }
 

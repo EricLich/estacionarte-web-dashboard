@@ -1,6 +1,7 @@
 export default interface ParkingUser{
     parkingName: String,
-    address: String
+    cuit: String,
+    address: String,
     phoneNumber: String,
     location: Object,    
 }

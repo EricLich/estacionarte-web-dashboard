@@ -11,7 +11,7 @@
 
 
         <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged">
-          <router-link to="/profile" class="mr-4">Perfil</router-link>
+          <router-link to="/profile" class="mr-4">{{ store.getters.getParkingName() }}</router-link>
           <router-link to="/dashboard" class="mr-4">Dashboard</router-link>
           <button @click.prevent="signOut" class="text-white text-lg font-bold bg-red-500 p-3 rounded-lg shadow-md hover:bg-red-600 duration-75">Cerrar Sesión</button>
         </div>
@@ -27,10 +27,10 @@
 </template>
 
 <script >
-import { defineComponent, onBeforeMount, provide, ref } from 'vue'
+import { defineComponent, onBeforeMount, provide } from 'vue'
 import './assets/tailwind.css'
 import firebase from 'firebase/compat/app'
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import store from '@/store/index'
 
 
@@ -39,19 +39,27 @@ export default defineComponent({
 
       provide('store', store)
       const router = useRouter();
-      const hola = ref('hola')
+      
 
+      //checkea si hay un usuario guardado en localstorage, y si lo hay checkea si esta autorizado para entrar
+      //si está, setea "user" de la store con el usuario del localstorage y setea "userSignedIn" como true
       onBeforeMount(() => {
-         firebase.auth().onAuthStateChanged((userFB) => {
-          if(!userFB){
-            router.replace('/login')
-          }
-        })
+        if(localStorage.getItem('logedUser')){   
+          store.methods.setUser(JSON.parse(localStorage.getItem('logedUser'))); 
+          store.methods.setUserSignedIn();     
+          firebase.auth().onAuthStateChanged((userFB) => {
+           if(!userFB){
+             router.replace('/login')
+           }
+          })
+        }
       })
 
+      //cierra la sesion de firebase, vacia el usuario de la store, setea userSignedIn como false y redirecciona a login
       const signOut = () => {
         firebase.auth().signOut();
         store.methods.resetUser();
+        localStorage.removeItem('logedUser')
         router.push('/login')
       }
 

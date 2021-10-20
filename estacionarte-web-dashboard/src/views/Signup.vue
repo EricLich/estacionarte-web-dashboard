@@ -3,50 +3,71 @@
         <h2 class="text-4xl mb-10 mt-10 text-left">Registrate</h2>
         <div class="flex justify-center align-center">
             <form class="w-full max-w-lg border-2 p-10 rounded-lg shadow-md">
-            <div class="flex flex-wrap -mx-3 mb-6">
-                <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-first-name">
-                    Nombre
-                </label>
-                <input v-model="parkingName" class="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white" id="grid-first-name" type="text" placeholder="Nombre">
-                </div>
-                <div class="w-full md:w-1/2 px-3">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-last-name">
-                    Apellido
-                </label>
-                <input v-model="lastname" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-last-name" type="text" placeholder="Apellido">
+            
+            <div class="flex flex-wrap -mx-3 mb-3">
+                <div class="w-full px-3">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-cuit">
+                        Nombre de establecimiento
+                    </label>
+                    <input required v-model="newUser.parkingName" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-nombre" type="text" placeholder="Nombre establecimiento">                    
+                    <div v-if="!validation.parkingName" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 " role="alert">
+                        <p class="text-left pl-2">El nombre no debe estar vacio.</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-email">
-                    Email
-                </label>
-                <input v-model="email" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-email" type="email" placeholder="Email">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-cuit">
+                        Cuit
+                    </label>
+                    <input required v-model="newUser.cuit" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-cuit" type="text" placeholder="CUIT">                    
+                    <div v-if="!validation.parkingName" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2" role="alert">
+                        <p class="text-left pl-2 text-red-800">El cuit debe tener 10 caracteres.</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-adress">
-                    Dirección de establecimiento
-                </label>
-                <input v-model="address" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Dirección">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-email">
+                        Email
+                    </label>
+                    <input required v-model="newUser.email" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-email" type="email" placeholder="Email">                
+                    <div v-if="!validation.email" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2" role="alert">
+                        <p class="text-left pl-2 text-red-800">No escribió el formato de email correctamente.</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-password">
-                    Contraseña
-                </label>
-                <input v-model="password" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-password" type="password" placeholder="Contraseña">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-adress">
+                        Dirección de establecimiento
+                    </label>
+                    <input required v-model="newUser.address" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Dirección">
+                    <div v-if="!validation.address"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2" role="alert">
+                        <p class="text-left pl-2 text-red-800">El campo de dirección no puede quedar vacío.</p>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-wrap -mx-3 mb-6">
+            <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
-                <label class="text-left block tracking-wide text-gray-700 text-lg font-bold mb-2" for="grid-re-password">
-                    Repetir contraseña
-                </label>
-                <input v-model="passRepeat" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-re-password" type="password" placeholder="Contraseña">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-password">
+                        Contraseña
+                    </label>
+                    <input required v-model="newUser.password" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-password" type="password" placeholder="Contraseña (mínimo 6 caracteres)">                    
+                    <div v-if="!validation.password"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2" role="alert">
+                        <p class="text-left pl-2 text-red-800">Su contraseña debe tener al menos 6 caracteres.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-3 mb-3">
+                <div class="w-full px-3">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-re-password">
+                        Repetir contraseña
+                    </label>
+                    <input required v-model="newUser.passRepeat" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-re-password" type="password" placeholder="Contraseña">                
+                    <div v-if="!validation.passRepeat" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2" role="alert">
+                        <p class="text-left pl-2 text-red-800">No coinciden los campos de contraseña.</p>
+                    </div>
                 </div>
             </div>
 
@@ -62,29 +83,49 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, reactive, inject } from 'vue'
 import firebase from 'firebase/compat/app'
 import { db } from '../utils/firebaseSetup'
 import ParkingUser from '../interfaces/ParkingUser'
+import { useRouter } from 'vue-router'
+
 
 export default defineComponent({
     setup() {
-        const parkingName = ref('');
-        const lastname = ref('')
-        const email = ref('');
-        const address = ref('')
-        const password = ref('')
-        const passRepeat = ref('')
+
+        const store: any = inject('store');
+
+        const router = useRouter()
+
+        let newUser = reactive({
+            parkingName: '' as String,
+            cuit: '' as String, 
+            email: '' as String, 
+            address: '' as String, 
+            password: '' as String, 
+            passRepeat: '' as String 
+        })
+        
+        let validation = reactive({
+            parkingName: true as boolean,
+            cuit: true as boolean,
+            email: true as boolean,
+            address: true as boolean,
+            password: true as boolean,
+            passRepeat: true as boolean,
+        })
     
+
         const signupAuth = () => {
-            if(parkingName.value != "" && lastname.value != "" && email.value != "" && password.value != "" && passRepeat.value != "" && password.value == passRepeat.value){                                
+            if(validate()){                                
                 firebase
                     .auth()
-                    .createUserWithEmailAndPassword(email.value, password.value)
+                    .createUserWithEmailAndPassword(newUser.email.toString(), newUser.password.toString())
                     .then(user => {
                         const parkingUser: ParkingUser = {
-                            parkingName: parkingName.value,
-                            address: address.value,
+                            parkingName: newUser.parkingName.toString(),
+                            cuit: newUser.cuit.toString(),
+                            address: newUser.address.toString(),
                             phoneNumber: "",
                             location: {
                                 lat: "",
@@ -94,27 +135,96 @@ export default defineComponent({
                         user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : console.log('Error de id');                                             
                     })
                     .catch(err => console.log(err.message))
-            }else{
-                alert("Hay datos sin completar")
             }          
         }
 
         const registerParkingUser = (newUser: ParkingUser, uid: String) => {
             db.collection('ParkingUsers').doc(uid.toString()).set({uid, ...newUser}) 
-                                                             .then(user => console.log(user))
+                                                             .then(user => {                                                                 
+                                                                    localStorage.setItem('logedUser', JSON.stringify({uid, ...newUser}))                                                                    
+                                                                    store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!)); //el ! significa que no va a devolver nunca "null" entonces ts no molesta mas
+                                                                    router.push('/dashboard');
+                                                             })
                                                              .catch(err => console.log(err))
         }
 
+        const validate = ():boolean => {
+            let nameCheck = checkParkingName();
+            let emailCheck = checkEmail();
+            let cuitCheck = checkCuit();
+            let addressCheck = checkAdress();
+            let passCheck = checkPass();
+            let passRepeatCheck = checkRepeatPass()
 
+
+            return nameCheck && emailCheck && cuitCheck && addressCheck && passCheck && passRepeatCheck ? true : false;
+        }
+
+        const checkParkingName = ():boolean => {
+            if(newUser.parkingName != ''){
+                validation.parkingName = true;
+                return true;
+            }else{
+                validation.parkingName = false;
+                return false;
+            }
+        }
+
+        const checkEmail = ():boolean => {
+            if(newUser.email != '' && newUser.email.includes('@')){
+                validation.email = true;
+                return true;
+            }else{
+                validation.email = false;
+                return false;
+            }
+        }
+
+        const checkCuit = ():boolean => {
+            if(newUser.cuit.length == 10){
+                validation.cuit = true;
+                return true;
+            }else{
+                validation.cuit = false;
+                return false;
+            }
+        }
+
+        const checkAdress = ():boolean =>{
+            if(newUser.address != ''){
+                validation.address = true;
+                return true;
+            }else{
+                validation.address = false;
+                return false;
+            }
+        }
+
+        const checkPass = ():boolean => {
+            if(newUser.password.length >= 6){
+                validation.password = true;
+                return true;
+            }else{
+                validation.password = false;
+                return false;
+            }
+        }
+
+        const checkRepeatPass = ():boolean => {
+            if(newUser.passRepeat.length >= 6 && newUser.passRepeat == newUser.password){
+                validation.passRepeat = true;
+                return true;
+            }else{
+                validation.passRepeat = false;
+                return false;
+            }
+        }
 
         return{
-            parkingName,
-            lastname,
-            email,
-            address,
-            password,
-            passRepeat,
-            signupAuth
+            newUser,
+            validation,
+            signupAuth,
+            validate,
         }
         
     },

@@ -17,7 +17,7 @@
           <input class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-600" id="password" type="password" placeholder="Contraseña" v-model="password">
         </div>
         <div class="flex items-center justify-between">
-          <button @click="login" class="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+          <button @click.prevent="login" class="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
             Entrar
           </button>
         </div>
@@ -43,14 +43,14 @@ export default defineComponent({
 
     const router = useRouter();
     async function login(){      
-      /* agregar funcion para verificar que sea un parking y no un usuario de la app */
       try{
         if(email.value != "" && password.value != ""){
           firebase.auth().signInWithEmailAndPassword(email.value, password.value)
               .then(async (res) => {
                 let doc =  await db.collection('ParkingUsers').doc(res.user?.uid).get();
                 if(doc.data() != undefined){    
-                  store.methods.setUser(doc.data())       
+                  localStorage.setItem('logedUser', JSON.stringify(doc.data()))
+                  store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')))                     
                   router.push('/dashboard')
                 }else{
                   console.log("No es un usuario parking")
@@ -63,12 +63,8 @@ export default defineComponent({
         }
       }catch(err){
         console.log(err.message)
-      }
-
-
-        
+      }        
     }
-
 
     return{
       email,
