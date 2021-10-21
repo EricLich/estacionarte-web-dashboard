@@ -57,6 +57,7 @@ export default defineComponent({
     async function login(){      
       try{
         if(validate()){
+          validation.passValidation = true;
           firebase.auth().signInWithEmailAndPassword(email.value, password.value)
               .then(async (res) => {
                 let doc =  await db.collection('ParkingUsers').doc(res.user?.uid).get();
@@ -68,13 +69,24 @@ export default defineComponent({
                   console.log("No es un usuario parking")
                 }
               })
-              .catch(err => console.log(err))
+              .catch(err => {
+                let noExistingUser = 'There is no user record corresponding to this identifier.';
+                let passErronea = 'The password is invalid or the user does not have a password.';
+                  if(err.message.toString().includes(passErronea) || err.message.toString().includes(noExistingUser)){
+                    validation.passValidation = false;
+                  }           
+                })
           
         }else{
           validation.passValidation = false;          
         }
-      }catch(err: any){
-        console.log(err.message)
+      }catch(err: any){        
+        let noExistingUser = 'There is no user record corresponding to this identifier.';
+        let passErronea = 'The password is invalid or the user does not have a password.';
+        let emailAlreadyExists = 'The email address is already in use by another account.';
+        if(err.message.toString().includes(passErronea) || err.message.toString().includes(emailAlreadyExists) || err.message.toString().includes(noExistingUser)){
+          validation.passValidation = false;
+        }
       }        
     }
 

@@ -148,8 +148,8 @@ export default defineComponent({
                     })
                     .catch(err => {
                         let emailAlreadyExists = 'The email address is already in use by another account.'; 
-                        let passInvalid = 'The password is invalid or the user does not have a password.';
-                        if(err.message.toString().includes(emailAlreadyExists) || err.message.toString().includes(passInvalid)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
+                        
+                        if(err.message.toString().includes(emailAlreadyExists)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
                             validation.emailExists = true;
                         }else{
                             validation.emailExists = false;
