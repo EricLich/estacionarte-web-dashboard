@@ -20,7 +20,7 @@
           <input class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-600" id="password" type="password" placeholder="Contraseña" v-model="password">
         </div>
         <div class="flex items-center justify-between">
-          <button @click="login" class="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+          <button @click.prevent="login" class="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
             Entrar
           </button>
         </div>
@@ -66,17 +66,16 @@ export default defineComponent({
               .catch(err => console.log(err))
           
         }else{
-          console.log("mal")
+          validation.passValidation = false;          
         }
-      }catch(err){
+      }catch(err: any){
         console.log(err.message)
       }        
     }
 
     const validate = ():boolean => {
-      let pattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+      let pattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"; //REGEX 
       if(!email.value.match(pattern) || password.value.length < 6){
-        validation.passValidation = false;
         return false;
       }else{
         validation.passValidation = true;
