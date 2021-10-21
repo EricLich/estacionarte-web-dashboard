@@ -48,6 +48,11 @@ export default defineComponent({
       passValidation: true as boolean
     });
 
+    //BUSCAR LA DIRECCION PARA LAT Y LONG
+    /* https://maps.googleapis.com/maps/api/geocode/json?address=5262+monroe+buenos+aires,1431&key=AIzaSyB1JGcj9GhNgv1_mX0zNEa8S7FxwC8adCM */
+
+    //RESOLVER QUE SI SE PONE UNA PASS INCORRECTA QUE TIRE ALGO
+
     const router = useRouter();
     async function login(){      
       try{
@@ -75,7 +80,7 @@ export default defineComponent({
 
     const validate = ():boolean => {
       let pattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"; //REGEX 
-      if(!email.value.match(pattern) || password.value.length < 6){
+      if(!email.value.match(pattern) || password.value.length < 6 ){
         return false;
       }else{
         validation.passValidation = true;

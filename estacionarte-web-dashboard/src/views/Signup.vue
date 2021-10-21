@@ -103,7 +103,7 @@ export default defineComponent({
 
         const router = useRouter()
 
-        let newUser = reactive({
+        let newUser = reactive({ 
             parkingName: '' as String,
             cuit: '' as String, 
             email: '' as String, 
@@ -125,6 +125,7 @@ export default defineComponent({
     
 
         const signupAuth = async () => {
+            validation.email = true;
             validation.emailExists = false;
             validation.addressExists = false;
             let addressExists: boolean = await checkAdressExists(newUser.address.toString()); // checkea si la direccion ya existe en la bdd            
@@ -147,7 +148,8 @@ export default defineComponent({
                     })
                     .catch(err => {
                         let emailAlreadyExists = 'The email address is already in use by another account.'; 
-                        if(err.message.toString().includes(emailAlreadyExists)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
+                        let passInvalid = 'The password is invalid or the user does not have a password.';
+                        if(err.message.toString().includes(emailAlreadyExists) || err.message.toString().includes(passInvalid)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
                             validation.emailExists = true;
                         }else{
                             validation.emailExists = false;
