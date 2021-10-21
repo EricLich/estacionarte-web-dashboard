@@ -180,8 +180,8 @@ export default defineComponent({
             }
         }
 
-        const checkCuit = ():boolean => {
-            if(newUser.cuit.length == 10){
+        const checkCuit = ():boolean => { //CHECKEAR
+            if(newUser.cuit.length == 11){
                 validation.cuit = true;
                 return true;
             }else{
