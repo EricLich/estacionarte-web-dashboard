@@ -1,8 +1,7 @@
 export default interface ParkingSpot{
-    id:Number,
+    id:String,
     spotName: String,
-    type: Number,
-    idUser: Number,
-    idVehicle: Number,
+    idUser: String,
+    idVehicle: String,
     available: Boolean
 }

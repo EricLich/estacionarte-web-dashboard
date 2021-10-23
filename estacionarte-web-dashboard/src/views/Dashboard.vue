@@ -25,7 +25,7 @@
             </div>
 
             <div v-if="activeTab == tabs.ADMIN" class="parked-spots h-full grid lg:grid-cols-2 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-2">
-                <AdminSpots :spots="spots"/>
+                <AdminSpots/>
             </div>
         </div>
     </div>
@@ -171,58 +171,7 @@ export default defineComponent({
                 userLeftDate: "otro dia",
                 cancelationDate: "un dia"
             },
-        ])
-
-        let spots = ref<ParkingSpot[]>([
-            {
-               id: 1,
-               spotName: "Spot 1",
-               type: 1,
-               idUser: 1,
-               idVehicle: 1,
-               available: true 
-            },
-            {
-               id: 2,
-               spotName: "Spot 2",
-               type: 1,
-               idUser: 2,
-               idVehicle: 3,
-               available: true 
-            },
-            {
-               id: 3,
-               spotName: "Spot 3",
-               type: 2,
-               idUser: 3,
-               idVehicle: 6,
-               available: true 
-            },
-            {
-               id: 4,
-               spotName: "Spot 4",
-               type: 1,
-               idUser: 1,
-               idVehicle: 1,
-               available: true 
-            },
-            {
-               id: 5,
-               spotName: "Spot 5",
-               type: 1,
-               idUser: 1,
-               idVehicle: 1,
-               available: true 
-            },
-            {
-               id: 6,
-               spotName: "Spot 6",
-               type: 1,
-               idUser: 1,
-               idVehicle: 1,
-               available: true 
-            },
-        ])
+        ])     
 
         let parkedCount = computed<Number>(() => {
             return parkedCars.value.length;
@@ -260,7 +209,6 @@ export default defineComponent({
             reservations,
             parkedCount,
             reserveCount,
-            spots,
             changeTab,
 
         }
