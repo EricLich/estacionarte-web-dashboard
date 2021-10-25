@@ -41,13 +41,25 @@
                 </div>
             </div>
             <div class="flex flex-wrap -mx-3 mb-3">
-                <div class="w-full px-3">
+                <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                     <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-adress">
-                        Dirección de establecimiento
+                        Dirección
                     </label>
                     <input required v-model="newUser.address" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Dirección">
                     <div v-if="!validation.address"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
                         <p class="text-left pl-2 text-red-800">El campo de dirección no puede quedar vacío.</p>
+                    </div>
+                    <div v-if="validation.addressExists" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded " role="alert">
+                        <p class="text-left pl-2 text-red-800">La dirección ya está asignada a otro establecimiento.</p>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-adress">
+                        Altura
+                    </label>
+                    <input required v-model="newUser.number" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Altura">
+                    <div v-if="!validation.address"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">El campo de número no puede quedar vacío.</p>
                     </div>
                     <div v-if="validation.addressExists" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded " role="alert">
                         <p class="text-left pl-2 text-red-800">La dirección ya está asignada a otro establecimiento.</p>
@@ -94,7 +106,7 @@ import firebase from 'firebase/compat/app'
 import { db } from '../utils/firebaseSetup'
 import ParkingUser from '../interfaces/ParkingUser'
 import { useRouter } from 'vue-router'
-
+import axios from 'axios';
 
 export default defineComponent({
     setup() {
@@ -108,6 +120,7 @@ export default defineComponent({
             cuit: '' as String, 
             email: '' as String, 
             address: '' as String, 
+            number: '' as String,
             password: '' as String, 
             passRepeat: '' as String 
         })
@@ -115,6 +128,7 @@ export default defineComponent({
         let validation = reactive({
             parkingName: true as boolean,
             addressExists: false as boolean,
+            numberFilled: true as Boolean,
             cuit: true as boolean,
             email: true as boolean,
             emailExists: false as boolean,
@@ -128,8 +142,9 @@ export default defineComponent({
             validation.email = true;
             validation.emailExists = false;
             validation.addressExists = false;
-            let addressExists: boolean = await checkAdressExists(newUser.address.toString()); // checkea si la direccion ya existe en la bdd            
+            let addressExists: boolean = await checkAdressExists(newUser.address.toString() + ' ' + newUser.number.toString()); // checkea si la direccion ya existe en la bdd            
             if(validate() && addressExists == false){   //si los campos ingresados son validos y la direccion no existe, procede                
+                const [latApi, longApi] = await checkLatLong();
                 firebase
                     .auth()
                     .createUserWithEmailAndPassword(newUser.email.toString(), newUser.password.toString()) //crea el usuario en auth
@@ -137,11 +152,11 @@ export default defineComponent({
                         const parkingUser: ParkingUser = { //le da valor a un nuevo usuario 
                             parkingName: newUser.parkingName.toString(),
                             cuit: newUser.cuit.toString(),
-                            address: newUser.address.toString(),
+                            address: newUser.address.toString() + ' ' + newUser.number.toString(),
                             phoneNumber: "",
                             location: {
-                                lat: "",
-                                long: ""
+                                lat: latApi,
+                                long: longApi
                             },
                         }  
                         user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : console.log('Error de id'); //modifica el nuevo usuario en firestore en la coleccion "ParkingUsers" para que corresponda al agregado en auth                                            
@@ -177,8 +192,9 @@ export default defineComponent({
             let addressCheck = checkAdress();
             let passCheck = checkPass();
             let passRepeatCheck = checkRepeatPass()
+            let numCheck = checkNumber()
 
-            return nameCheck && emailCheck && cuitCheck && addressCheck && passCheck && passRepeatCheck ? true : false;
+            return nameCheck && emailCheck && cuitCheck && addressCheck && numCheck && passCheck && passRepeatCheck ? true : false;
         }
 
         const checkParkingName = ():boolean => {
@@ -221,6 +237,16 @@ export default defineComponent({
             }
         }
 
+        const checkNumber = () => {
+            if(newUser.number != ''){
+                validation.numberFilled = true;
+                return true;
+            }else{
+                validation.address = false;
+                return false;
+            }
+        }
+
         const checkPass = ():boolean => {
             if(newUser.password.length >= 6){
                 validation.password = true;
@@ -251,8 +277,16 @@ export default defineComponent({
             }            
         }
 
+        const checkLatLong = async () => {
+            let url = `https://maps.googleapis.com/maps/api/geocode/json?address=${newUser.number}+${newUser.address}+buenos+aires&key=AIzaSyB1JGcj9GhNgv1_mX0zNEa8S7FxwC8adCM`
+            const locationData:any = await axios.get(url)
+            let lat = locationData.data.results[0].geometry.location.lat
+            let long = locationData.data.results[0].geometry.location.lng
+            return [lat, long]
+        }
+
         //BUSCAR LA DIRECCION PARA LAT Y LONG
-        /* https://maps.googleapis.com/maps/api/geocode/json?address=5262+monroe+buenos+aires,1431&key=AIzaSyB1JGcj9GhNgv1_mX0zNEa8S7FxwC8adCM */
+        /*  */
         
         return{
             newUser,

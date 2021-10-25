@@ -32,14 +32,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, watch, inject } from 'vue';
+import { computed, defineComponent, reactive, ref, watch, inject, onBeforeMount } from 'vue';
 import ParkedCar from '@/components/ParkedCar.vue';
 import Reserve from '@/components/Reserve.vue';
 import AdminSpots from '@/components/AdminSpots.vue'
 import Parked from '@/interfaces/Parked';
-import Reservation from '@/interfaces/Reservation';
-import ParkingSpot from '@/interfaces/ParkingSpot';
-import { useRoute } from 'vue-router';
+import { db } from '../utils/firebaseSetup'
 
 export default defineComponent({
     components:{
@@ -48,7 +46,7 @@ export default defineComponent({
         AdminSpots: AdminSpots
     },
     setup(props) {  
-        const store = inject('store')
+        const store:any = inject('store')
         let inputValue = ref('')
 
         let tabs = {
@@ -104,81 +102,15 @@ export default defineComponent({
             },
         ])
 
-        let reservations = ref<Reservation[]>([
-            {
-                id: 1,
-                parkingId: "lala",
-                parkingSpotId: "lala",
-                idUser: "user1",
-                idVehicle: "v1",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-            {
-                id: 2,
-                parkingId: "lala2",
-                parkingSpotId: "lala2",
-                idUser: "user2",
-                idVehicle: "v2",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-            {
-                id: 3,
-                parkingId: "lala3",
-                parkingSpotId: "lala3",
-                idUser: "user3",
-                idVehicle: "v3",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-            {
-                id: 4,
-                parkingId: "lala4",
-                parkingSpotId: "lala4",
-                idUser: "user4",
-                idVehicle: "v4",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-            {
-                id: 5,
-                parkingId: "lala5",
-                parkingSpotId: "lala5",
-                idUser: "user5",
-                idVehicle: "v5",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-            {
-                id: 6,
-                parkingId: "lala6",
-                parkingSpotId: "lala6",
-                idUser: "user6",
-                idVehicle: "v6",
-                reservationDate: "un dia",
-                userArrivedDate: "un dia",
-                userLeftDate: "otro dia",
-                cancelationDate: "un dia"
-            },
-        ])     
+        let reservations = reactive<any[]>([])
+             
 
         let parkedCount = computed<Number>(() => {
             return parkedCars.value.length;
         })
 
         let reserveCount = computed<Number>(() => {
-            return reservations.value.length;
+            return reservations.length;
         })
 
         function changeTab(selectedTab: String){
@@ -186,17 +118,36 @@ export default defineComponent({
             inputValue.value = '';
         }
 
-        /* copias de arrays para volverles a dar el valor inicial en el caso de dejar los input vacios */
+        onBeforeMount(async () => {
+
+            await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
+                reservations.splice(0, reservations.length)
+                snapShot.docs.map(async (doc, index) => {
+                    reservations.push({...doc.data()})
+                    reservations[index].id = doc.id;                    
+                    let vehicle:any = await db.collection('Vehicles').doc(reservations[index].vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
+                    reservations[index].vehicle = vehicle;
+                    let spot:any = await db.collection('ParkingSpots').doc(reservations[index].parkingSpotID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))                    
+                    reservations[index].spot = spot
+                })
+            })
+
+        })
+
+
+
+        
         const parkedCopy = parkedCars.value;
-        const reservCopy = reservations.value;
+        const reservCopy = reservations;
         
         watch(inputValue, () => {
             if(activeTab.value == tabs.PARKED){
                 parkedCars.value = parkedCopy;
                 parkedCars.value = parkedCars.value.filter(car => car.licensePlate.includes(inputValue.value))
-            }else if(activeTab.value == tabs.RESERVED){
-                reservations.value = reservCopy;
-                reservations.value = reactive(reservations.value.filter(reserve => reserve.parkingId.includes(inputValue.value)))
+            }else if(activeTab.value == tabs.RESERVED){                
+                reservations = reservCopy;
+                reservations = reactive(reservations.filter(reserve => reserve.id.includes(inputValue.value)))
+                console.log(reservations)
             }
         })
 
