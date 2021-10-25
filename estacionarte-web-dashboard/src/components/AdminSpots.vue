@@ -7,7 +7,12 @@
                     Identificador del lugar
                 </label>
                 <input v-model="newSpot.spotName" class="shadow appearance-none border rounded w-full py-4 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="spotName" type="text" placeholder="Identificador del lugar">
-                
+                <div v-if="validation.repeatedName" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 my-2 rounded" role="alert">
+                    <p class="text-left pl-2 text-red-800">No puede haber dos lugares con el mismo identificador.</p>
+                </div>
+                <div v-if="validation.empty" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 my-2 rounded" role="alert">
+                    <p class="text-left pl-2 text-red-800">El identificador del lugar no puede estar vacio.</p>
+                </div>
             </div>
             
             <!-- <label class="block text-gray-700 text-m font-bold mb-2 text-left">
@@ -59,24 +64,39 @@ export default defineComponent({
 
     let newSpot = reactive({
         spotName: '' as String,
-        idParking: store.getters.getUserId() as String,
-        idVehicle: 'test' as String,
+        parkingID: store.getters.getUserId() as String,
+        vehicleID: 'test' as String,
         available: true as boolean
+    })
+
+    let validation = reactive({
+        repeatedName: false,
+        empty: false
     })
 
     let spots = reactive<any[]>([]);
 
     let add = ref(true)
+    
+    let spotToEditId = ref('');
 
     const saveNewSpot = async () => { 
-        await db.collection('ParkingSpots').add(newSpot)                                        
+        validation.repeatedName = false;
+        validation.empty = false;
+        if(newSpot.spotName == ''){
+            validation.empty = true;
+        }else{
+            if(checkSpotName()){
+                await db.collection('ParkingSpots').add(newSpot)                                        
+            }else{
+                validation.repeatedName = true;
+            }
+        }
         
     }
 
-    let spotToEditId = ref('');
-
     onBeforeMount(async () => {
-        await db.collection('ParkingSpots').where('idParking', '==', newSpot.idParking).onSnapshot(snapshot => {  
+        await db.collection('ParkingSpots').where('parkingID', '==', newSpot.parkingID).onSnapshot(snapshot => {  
             newSpot.spotName = '';
             spots.splice(0, spots.length)
             snapshot.docs.map((doc, index) => {
@@ -86,7 +106,17 @@ export default defineComponent({
         })
     })
 
+    const checkSpotName = ():boolean => {
+        if(spots.find(spot => spot.spotName == newSpot.spotName) == undefined){
+            return true
+        }else{
+            return false;
+        }
+    }
+
     const editSpot = (parkingSpot: any) => {
+        validation.empty = false;
+        validation.repeatedName = false
         newSpot.spotName = parkingSpot.spotName;
         newSpot.available = parkingSpot.available;
         spotToEditId = parkingSpot.id
@@ -94,8 +124,18 @@ export default defineComponent({
     }
 
     const editSpotPassed = async () => {
-        db.collection('ParkingSpots').doc(spotToEditId.toString()).update({spotName: newSpot.spotName, available: newSpot.available})
-        add.value = !add.value; 
+        validation.repeatedName = false;
+        validation.empty = false;
+        if(newSpot.spotName == ''){
+            validation.empty = true;
+        }else{
+            if(checkSpotName()){
+                db.collection('ParkingSpots').doc(spotToEditId.toString()).update({spotName: newSpot.spotName, available: newSpot.available})
+                add.value = !add.value; 
+            }else{
+                validation.repeatedName = true;
+            }
+        }
     }
 
     return{
@@ -106,7 +146,8 @@ export default defineComponent({
         editSpot,
         add,
         editSpotPassed,
-        spotToEditId
+        spotToEditId,
+        validation
     }
 
   }

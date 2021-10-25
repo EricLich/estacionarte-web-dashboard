@@ -46,10 +46,7 @@ export default defineComponent({
 
     let validation = reactive({
       passValidation: true as boolean
-    });
-
-    //BUSCAR LA DIRECCION PARA LAT Y LONG
-    /* https://maps.googleapis.com/maps/api/geocode/json?address=5262+monroe+buenos+aires,1431&key=AIzaSyB1JGcj9GhNgv1_mX0zNEa8S7FxwC8adCM */
+    });    
 
     //RESOLVER QUE SI SE PONE UNA PASS INCORRECTA QUE TIRE ALGO
 

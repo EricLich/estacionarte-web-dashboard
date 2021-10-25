@@ -22,7 +22,10 @@ export default defineComponent({
     setup(props, { emit }) {
 
         const deleteSpot = async () => {
-            await db.collection('ParkingSpots').doc(props.spot?.id.toString()).delete()
+            confirm(`Está seguro de que desea eliminar el espacio ${props.spot?.spotName}?`) ? 
+                await db.collection('ParkingSpots').doc(props.spot?.id.toString()).delete() 
+                : null;
+            
         }
 
         const editSpot = async () => {
