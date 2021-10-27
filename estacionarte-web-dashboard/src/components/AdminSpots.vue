@@ -26,8 +26,8 @@
             <label class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
                 <span class="text-gray-700">Disponible para uso</span>
                 <select v-model="newSpot.available" class="shadow form-select block w-full mt-1 mb-2 border py-4 px-2 rounded focus:outline-none focus:shadow-outline">
-                    <option :value="true">Habilitado</option>
-                    <option :value="false">Deshabilitado</option>
+                    <option :value="true">Libre</option>
+                    <option :value="false">Ocupado</option>
                 </select>
             </label>
             <div v-if="add" class="flex items-center justify-between">
