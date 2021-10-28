@@ -30,21 +30,24 @@
                     <option :value="false">Ocupado</option>
                 </select>
             </label>
-            <div v-if="add" class="flex items-center justify-between">
+            <div v-if="!store.getters.getEditing()" class="flex items-center justify-between">
                 <button @click.prevent="saveNewSpot()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
                     Agregar
                 </button>
             </div>
-            <div v-if="!add" class="flex items-center justify-between">
+            <div v-if="store.getters.getEditing()" class="flex items-center justify-between">
                 <button @click.prevent="editSpotPassed()" class="bg-yellow-400 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
                     Editar
+                </button>
+                <button @click.prevent="cancelEdit" class="bg-red-400 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
+                    Cancelar
                 </button>
             </div>
         </form>
     </div>
     <div class="flex flex-col self-start bg-white border-2 rounded-md w-full h-full shadow-lg px-8 pt-6 pb-8 mb-4 mt-4 ">        
         <h3 class="text-2xl w-full mt-5 mb-5 text-left">Listado de espacios de estacionamiento</h3>
-        <AdminSpot v-for="(spot, index) in spots" :key="index" :spot="spot" @editSpot="editSpot"/>
+        <AdminSpot v-for="(spot) in spots" :key="spot.id" :spot="spot" @editSpot="editSpot"/>
     </div>  
 </template>
 
@@ -58,7 +61,7 @@ export default defineComponent({
   components: {
       AdminSpot: AdminSpot
   },
-  setup(){
+  setup(props, { emit }){
 
     const store:any = inject('store');
 
@@ -76,9 +79,11 @@ export default defineComponent({
 
     let spots = reactive<any[]>([]);
 
-    let add = ref(true)
+    let add = ref(true);
     
     let spotToEditId = ref('');
+
+    let nameBeforeEdit = ref('')
 
     const saveNewSpot = async () => { 
         validation.repeatedName = false;
@@ -115,27 +120,51 @@ export default defineComponent({
     }
 
     const editSpot = (parkingSpot: any) => {
-        validation.empty = false;
-        validation.repeatedName = false
-        newSpot.spotName = parkingSpot.spotName;
-        newSpot.available = parkingSpot.available;
-        spotToEditId = parkingSpot.id
-        add.value = !add.value;
+        if(store.getters.getEditing()){
+            validation.empty = false;
+            validation.repeatedName = false   
+            nameBeforeEdit.value = parkingSpot.spotName;     
+            newSpot.spotName = parkingSpot.spotName;
+            newSpot.available = parkingSpot.available;
+            spotToEditId = parkingSpot.id
+            add.value = !add.value;
+        }else if(!store.getters.getEditing()){
+            console.log('aca')
+            nameBeforeEdit.value = '';     
+            newSpot.spotName = '';
+            newSpot.parkingID = '';
+            validation.empty = false;
+            validation.repeatedName = false;
+            add.value = !add.value;
+        }
     }
 
     const editSpotPassed = async () => {
         validation.repeatedName = false;
         validation.empty = false;
+
         if(newSpot.spotName == ''){
             validation.empty = true;
         }else{
-            if(checkSpotName()){
+            if(checkSpotName()  || newSpot.spotName == nameBeforeEdit.value){ //solucionar que se pueda actualizar el estado aunque no se haya cambiado de nombre!!
                 db.collection('ParkingSpots').doc(spotToEditId.toString()).update({spotName: newSpot.spotName, available: newSpot.available})
                 add.value = !add.value; 
-            }else{
+                newSpot.spotName = ''    
+                store.methods.changeEditingStatus()        
+            }else {
                 validation.repeatedName = true;
             }
         }
+    }
+
+    const cancelEdit = () => {
+        store.methods.changeEditingStatus();
+        nameBeforeEdit.value = '';
+        newSpot.spotName = '';
+        newSpot.available = true;
+        validation.repeatedName = false;
+        validation.empty = false;
+        add.value = !add.value;
     }
 
     return{
@@ -147,7 +176,8 @@ export default defineComponent({
         add,
         editSpotPassed,
         spotToEditId,
-        validation
+        validation,
+        cancelEdit,               
     }
 
   }

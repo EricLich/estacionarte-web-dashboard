@@ -2,7 +2,8 @@ import { reactive } from "@vue/reactivity";
 
 const state = reactive({
   user:{},
-  userSignedIn: false
+  userSignedIn: false,
+  editing: false
 });
 
 const methods = {
@@ -16,6 +17,9 @@ const methods = {
   },
   setUserSignedIn(){
     state.userSignedIn = true;
+  },
+  changeEditingStatus(){
+    state.editing = !state.editing;
   }
 }
 
@@ -31,6 +35,9 @@ const getters = {
   },
   getParkingName(){
     return state.user.parkingName;
+  },
+  getEditing(){
+    return state.editing
   }
 }
 

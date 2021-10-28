@@ -11,15 +11,18 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, PropType, ref, inject } from 'vue'
 import ParkingSpot from '../interfaces/ParkingSpot';
 import { db } from '../utils/firebaseSetup';
 
 export default defineComponent({
     props:{
-        spot: Object as PropType<ParkingSpot>
+        spot: Object as PropType<ParkingSpot>,
+        editing: Boolean
     },
     setup(props, { emit }) {
+
+        const store:any = inject('store')
 
         const deleteSpot = async () => {
             confirm(`Está seguro de que desea eliminar el espacio ${props.spot?.spotName}?`) ? 
@@ -29,7 +32,13 @@ export default defineComponent({
         }
 
         const editSpot = async () => {
-            emit('editSpot', props.spot)
+            if(!store.getters.getEditing()){
+                store.methods.changeEditingStatus()
+                emit('editSpot', {...props.spot})
+            }else if(store.getters.getEditing()){
+                store.methods.changeEditingStatus();
+                emit('editSpot', {...props.spot})
+            }
         }
 
         return{
