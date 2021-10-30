@@ -110,7 +110,6 @@ import axios from 'axios';
 
 export default defineComponent({
     setup() {
-
         const store: any = inject('store');
 
         const router = useRouter()

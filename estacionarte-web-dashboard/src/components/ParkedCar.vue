@@ -3,14 +3,19 @@
     <div class="flex flex-col align-baseline">
         <h2 class="text-3xl font-bold self-start mb-2">Patente: {{ parked.vehicle.licensePlate }}</h2>
         <h2 class="text-3xl font-bold self-start mb-2">Lugar: {{ parked.spot.spotName }}</h2>
-        <h3 class="text-2xl font-semibold text-gray-500 self-start mb-2">Tiempo transcurrido: {{ parkedCar.timePassed }}</h3>
+        <h3 class="text-xl font-semibold text-gray-500 text-left mb-2">Hora de llegada: {{ parkedCar.userArrivedDate }}</h3>
         <p class="text-xl text-gray-400 self-start mb-1">Modelo: {{ parked.vehicle.model }}</p>  
         <span class="text-xl text-gray-400 self-start mb-1">Marca: {{ parked.vehicle.brand }}</span>
     </div>
 
-    <button class=" text-md w-28 mt-4 bg-red-500 hover:bg-red-700 duration-75 text-white font-bold p-2 border border-none rounded shadow-md" @click="end()">
+    <div class="flex justify-between self-center">
+    <button class=" text-md w-28 mt-4 bg-red-500 hover:bg-red-700 duration-75 text-white font-bold p-2 border border-none rounded shadow-md mr-1" @click="end">
         Finalizar
     </button>  
+    <button class=" text-md w-28 mt-4 bg-yellow-400 hover:bg-yellow-500 duration-75 text-white font-bold p-2 border border-none rounded shadow-md ml-1" @click="cancel">
+        Cancelar
+    </button>  
+    </div>
   </div>
 </template>
 
@@ -27,12 +32,17 @@ export default defineComponent({
         let parked = reactive({...props.parkedCar})
 
         const end = () => {
-          emit('end', parked)
+          emit('end', props.parkedCar)
+        }
+
+        const cancel = () => {
+          emit('cancel', props.parkedCar)
         }
 
         return{
           parked,
-          end
+          end,
+          cancel
         }
     },
 })

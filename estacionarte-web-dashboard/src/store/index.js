@@ -3,7 +3,7 @@ import { reactive } from "@vue/reactivity";
 const state = reactive({
   user:{},
   userSignedIn: false,
-  editing: false
+  editing: false,
 });
 
 const methods = {
@@ -20,7 +20,7 @@ const methods = {
   },
   changeEditingStatus(){
     state.editing = !state.editing;
-  }
+  },
 }
 
 const getters = {
@@ -38,7 +38,7 @@ const getters = {
   },
   getEditing(){
     return state.editing
-  }
+  },
 }
 
 

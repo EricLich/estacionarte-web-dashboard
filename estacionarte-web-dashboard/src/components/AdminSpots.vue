@@ -30,6 +30,13 @@
                     <option :value="false">Ocupado</option>
                 </select>
             </label>
+            <label class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
+                <span class="text-gray-700">Estado</span>
+                <select v-model="newSpot.active" class="shadow form-select block w-full mt-1 mb-2 border py-4 px-2 rounded focus:outline-none focus:shadow-outline">
+                    <option :value="true">Activo</option>
+                    <option :value="false">Inactivo</option>
+                </select>
+            </label>
             <div v-if="!store.getters.getEditing()" class="flex items-center justify-between">
                 <button @click.prevent="saveNewSpot()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
                     Agregar
@@ -61,14 +68,14 @@ export default defineComponent({
   components: {
       AdminSpot: AdminSpot
   },
-  setup(props, { emit }){
+  setup(props){
 
     const store:any = inject('store');
 
     let newSpot = reactive({
+        active: true as Boolean,
         spotName: '' as String,
         parkingID: store.getters.getUserId() as String,
-        vehicleID: 'test' as String,
         available: true as boolean
     })
 
@@ -126,6 +133,7 @@ export default defineComponent({
             nameBeforeEdit.value = parkingSpot.spotName;     
             newSpot.spotName = parkingSpot.spotName;
             newSpot.available = parkingSpot.available;
+            newSpot.active = parkingSpot.active
             spotToEditId = parkingSpot.id
             add.value = !add.value;
         }else if(!store.getters.getEditing()){
@@ -133,6 +141,7 @@ export default defineComponent({
             nameBeforeEdit.value = '';     
             newSpot.spotName = '';
             newSpot.parkingID = '';
+            newSpot.active = true
             validation.empty = false;
             validation.repeatedName = false;
             add.value = !add.value;
@@ -146,10 +155,12 @@ export default defineComponent({
         if(newSpot.spotName == ''){
             validation.empty = true;
         }else{
-            if(checkSpotName()  || newSpot.spotName == nameBeforeEdit.value){ //solucionar que se pueda actualizar el estado aunque no se haya cambiado de nombre!!
-                db.collection('ParkingSpots').doc(spotToEditId.toString()).update({spotName: newSpot.spotName, available: newSpot.available})
+            if(checkSpotName()  || newSpot.spotName == nameBeforeEdit.value){
+                db.collection('ParkingSpots').doc(spotToEditId.toString()).update({spotName: newSpot.spotName, available: newSpot.available, active: newSpot.active})
                 add.value = !add.value; 
-                newSpot.spotName = ''    
+                newSpot.spotName = ''  
+                newSpot.active = true
+                newSpot.available = true  
                 store.methods.changeEditingStatus()        
             }else {
                 validation.repeatedName = true;
@@ -162,6 +173,7 @@ export default defineComponent({
         nameBeforeEdit.value = '';
         newSpot.spotName = '';
         newSpot.available = true;
+        newSpot.active = true;
         validation.repeatedName = false;
         validation.empty = false;
         add.value = !add.value;

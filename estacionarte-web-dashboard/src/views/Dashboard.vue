@@ -9,7 +9,7 @@
             <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
-                <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar" @end="carLeaving"/>                    
+                <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar" @end="carLeaving" @cancel="cancelReservation"/>                    
                 <div v-if="parkedCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
@@ -17,7 +17,7 @@
             </div>
 
             <div v-if="activeTab == tabs.RESERVED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
-                <Reserve v-for="reservation in reservations" :key="reservation.id" :reservation="reservation" @proceedReservation="moveSpotToFilled"/>
+                <Reserve v-for="reservation in reservations" :key="reservation.id" :reservation="reservation" @proceedReservation="moveSpotToFilled" @cancel="cancelReservation"/>
                 <div v-if="reserveCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
@@ -56,7 +56,7 @@ export default defineComponent({
 
         let activeTab = ref<String>(tabs.PARKED);
 
-        let parkedCars = reactive<any[]>([])
+        let parkedCars = reactive<any[]>([]);
 
         let reservations = reactive<any[]>([])
              
@@ -78,22 +78,40 @@ export default defineComponent({
 
         onBeforeMount(async () => {
             await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
+                parkedCars.splice(0, parkedCars.length)
                 reservations.splice(0, reservations.length)
-                snapShot.docs.map(async (doc, index) => {
-                    reservations.push({...doc.data()})
-                    reservations[index].id = doc.id;                    
-                    let vehicle:any = await db.collection('Vehicles').doc(reservations[index].vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
-                    reservations[index].vehicle = vehicle;
-                    let spot:any = await db.collection('ParkingSpots').doc(reservations[index].parkingSpotID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))                 
-                    
-                    reservations[index].spot = spot
+                let indexRes = ref(0);
+                let indexParked = ref(0);
+                snapShot.docs.map(async (doc) => {
+                    let vehicle:any = await db.collection('Vehicles').doc(doc.data().vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
+                    let spot:any = await db.collection('ParkingSpots').doc(doc.data().parkingSpotID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))                 
+                    if(doc.data().active && doc.data().userArrivedDate == null && doc.data().cancelationDate == null){
+                        indexRes.value == 0 ? reservations.splice(0, reservations.length) : false
+                        reservations.push({...doc.data()})                        
+                        reservations[indexRes.value].id = doc.id;                    
+                        reservations[indexRes.value].vehicle = vehicle;
+                        reservations[indexRes.value].spot = spot;
+                        indexRes.value++;                 
+                    }else if(doc.data().userArrivedDate != null && doc.data().userLeftDate == null && doc.data().active){
+                        indexParked.value == 0 ? parkedCars.splice(0, parkedCars.length) : false
+                        parkedCars.push({...doc.data()})
+                        parkedCars[indexParked.value].id = doc.id;                    
+                        parkedCars[indexParked.value].vehicle = vehicle;
+                        parkedCars[indexParked.value].spot = spot                  
+                        indexParked.value++;
+                    }
                 })
+                indexRes.value = 0;
+                indexParked.value = 0;
             })            
-        })
+        })           
 
-        const moveSpotToFilled = (resToMove: any) => {
+        const moveSpotToFilled = (resToMove: any) => {            
             reservations.splice(reservations.findIndex(res => res.id == resToMove.id), 1)
-            parkedCars.push(resToMove);
+            let a = new Date();
+            let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes();
+            resToMove.userArrivedDate = date;
+            db.collection('Reservations').doc(resToMove.id).update({userArrivedDate: date, active:true});
             if(reservations.length == 0){
                 activeTab.value = tabs.PARKED;
             }else if(reservations.length == 0 && parkedCars.length == 0){
@@ -117,19 +135,28 @@ export default defineComponent({
             }
         })
 
-        const carLeaving = (parked:any) => {          /* CREAR COMPLETED RESERVATIONS EN LA BDD PARA PASAR AHI LAS COMPLETADAS Y NO FILTRAR MILLONES DE REGISTROS CADA VEZ QUE SE QUIERAN VER LAS RESERVAS ACTUALES */  
-            db.collection('Reservations').doc(parked.id.toString()).update({active: false})
-                .then(res => {
-                    db.collection('ParkingSpots').doc(parked.parkingSpotID.toString()).update({available: true})
-                                                 .then(res => {
-                                                    parkedCars.splice(parkedCars.findIndex(reserve => reserve.id == parked.id), 1)
-                                                    if(parkedCars.length == 0){
-                                                        activeTab.value = tabs.ADMIN;
-                                                    }
-                                                 }) 
-                                                 .catch(err => console.log('error en update de spot'))
-                })
-                .catch(err => console.log('error en update de reservations'))
+        const carLeaving = async (parked:any) => {            
+            let a = new Date()
+            let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes()    
+            db.collection('Reservations').doc(parked.id).update({active: false, userLeftDate: date})
+                                        .then(res => {
+                                            db.collection('ParkingSpots').doc(parked.parkingSpotID.toString()).update({available: true})
+                                                                         .then(res => {
+                                                                            parkedCars.splice(parkedCars.findIndex(reserve => reserve.id == parked.id), 1)
+                                                                         }) 
+                                                                         .catch(err => console.log('error en update de spot'))
+                                        })
+                                        .catch(err => console.log('error en update de reservations')) 
+        }
+
+        const cancelReservation = (reserve: any) => {
+            let a = new Date();
+            let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes();
+            db.collection('Reservations').doc(reserve.id).update({active: false, cancelationDate: date})
+                                                            .then(async res => {
+                                                                await db.collection('ParkingSpots').doc(reserve.parkingSpotID).update({available: true})
+                                                            })
+                                                            .catch(err => console.log(err.message))
         }
 
         return{
@@ -143,7 +170,8 @@ export default defineComponent({
             reserveCount,
             changeTab,
             moveSpotToFilled,
-            carLeaving
+            carLeaving,
+            cancelReservation
 
         }
     },

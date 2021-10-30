@@ -6,9 +6,14 @@
         <p class="text-xl text-gray-500 self-start mb-1">Patente: <span class="font-bold">{{ res.vehicle.licensePlate }}</span></p>  
     </div>
 
-    <button class="w-18 self-start mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 border-none rounded" @click="proceedReservation()">
-        Ingresar
-    </button>  
+    <div class="flex justify-between self-center">
+      <button class="w-18 self-start mt-4 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 border-none rounded mr-1" @click="proceedReservation">
+          Ingresar
+      </button>  
+      <button class="w-18 self-start mt-4 bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-2 px-4 border-none rounded ml-1" @click="cancelReservation">
+          Cancelar
+      </button>  
+    </div>
   </div>
 </template>
 
@@ -24,14 +29,22 @@ export default defineComponent({
   },
   setup(props, { emit }){
 
+
+    /* SI SE PONE EN INACTIVO EL SPOT HAY QUE CANCELAR LA RESERVA */
+
     let res = reactive({...props.reservation});
     const proceedReservation = () => {
       emit('proceedReservation', res);
     }
 
+    const cancelReservation = () => {
+      emit('cancel', res);
+    }
+
     return{
       res,
       proceedReservation,
+      cancelReservation
     }
   } 
 });
