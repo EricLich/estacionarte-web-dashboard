@@ -6,11 +6,11 @@
             <div @click="changeTab(tabs.ADMIN)" :class="{'active-tab' : (activeTab == tabs.ADMIN)}" class="tab text-3xl mr-10 text-gray-300">Administrar Espacios</div>
         </div>
         <div class="h-auto py-4 px-8 text-lg bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
-            <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
+            <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" @input="filter" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar" @end="carLeaving" @cancel="cancelReservation"/>                    
-                <div v-if="parkedCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <div v-if="parkedCount.value == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>            
@@ -18,7 +18,7 @@
 
             <div v-if="activeTab == tabs.RESERVED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <Reserve v-for="reservation in reservations" :key="reservation.id" :reservation="reservation" @proceedReservation="moveSpotToFilled" @cancel="cancelReservation"/>
-                <div v-if="reserveCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <div v-if="reserveCount.value == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>             
@@ -62,13 +62,11 @@ export default defineComponent({
              
 
         let parkedCount = computed<Number>(() => {
-            return parkedCars.length;
+            return parkedCars.length == 0 ? 0 : parkedCars.length;
         })
 
-        let reserveCount = ref()
-
-        watch(reservations, () => {
-            reserveCount.value = reservations.length
+        let reserveCount = computed<Number>(() => {
+            return  reservations.length == 0 ? 0 : reservations.length;
         })
 
         function changeTab(selectedTab: String){
@@ -79,12 +77,12 @@ export default defineComponent({
         onBeforeMount(async () => {
             await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
                 parkedCars.splice(0, parkedCars.length)
-                reservations.splice(0, reservations.length)
+                //reservations.splice(0, reservations.length)
                 let indexRes = ref(0);
                 let indexParked = ref(0);
-                snapShot.docs.map(async (doc) => {
-                    let vehicle:any = await db.collection('Vehicles').doc(doc.data().vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
+                snapShot.docs.map(async doc => {
                     let spot:any = await db.collection('ParkingSpots').doc(doc.data().parkingSpotID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))                 
+                    let vehicle:any = await db.collection('Vehicles').doc(doc.data().vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
                     if(doc.data().active && doc.data().userArrivedDate == null && doc.data().cancelationDate == null){
                         indexRes.value == 0 ? reservations.splice(0, reservations.length) : false
                         reservations.push({...doc.data()})                        
@@ -120,20 +118,29 @@ export default defineComponent({
         }
 
         
-        const parkedCopy = parkedCars;
-        const reservCopy = reservations;
         
-        watch(inputValue, () => {
+        /* watch(inputValue, () => {         
             if(activeTab.value == tabs.PARKED){
                 parkedCars = parkedCopy;
-                parkedCars = parkedCars.filter(car => car.vehicle.licensePlate.includes(inputValue.value))
-                console.log(parkedCars)
+                parkedCars = parkedCars.filter(car => car.vehicle.licensePlate.includes(inputValue.value))    
             }else if(activeTab.value == tabs.RESERVED){                
-                reservations = reservCopy;
-                reservations = reactive(reservations.filter(reserve => reserve.id.includes(inputValue.value)))
-                console.log(reservations)
+                reservations = reservCopy;                
+                reservations = reservations.filter(reserve => reserve.vehicle.licensePlate.includes(inputValue.value))
             }
-        })
+        }) */
+
+        /* TERMINAR FILTRO! */
+        const parkedCopy = parkedCars
+        const reservCopy = reservations
+        const filter = () => {
+            if(activeTab.value == tabs.PARKED){
+                parkedCars = parkedCopy;
+                parkedCars = parkedCars.filter(car => car.vehicle.licensePlate.includes(inputValue.value))   
+            }else if(activeTab.value == tabs.RESERVED){                
+                reservations = reservCopy;                
+                reservations = reservations.filter(reserve => reserve.vehicle.licensePlate.includes(inputValue.value))
+            }
+        }
 
         const carLeaving = async (parked:any) => {            
             let a = new Date()
@@ -171,8 +178,8 @@ export default defineComponent({
             changeTab,
             moveSpotToFilled,
             carLeaving,
-            cancelReservation
-
+            cancelReservation,
+            filter            
         }
     },
 })
@@ -181,7 +188,6 @@ export default defineComponent({
 <style scoped>
 
     .active-tab{
-        /* color: black; */
         color: #015275;
         font-weight: bold;
     }

@@ -11,8 +11,8 @@
 
 
         <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged">
-          <router-link to="/profile" class="mr-4">{{ store.getters.getParkingName() }}</router-link>
-          <router-link to="/dashboard" class="mr-4">Dashboard</router-link>
+          <!-- <router-link to="/profile" class="mr-4">{{ store.getters.getParkingName() }}</router-link> -->
+          <router-link to="/dashboard" class="">Dashboard</router-link>
           <button @click.prevent="signOut" class="text-white text-lg font-bold bg-red-500 p-3 rounded-lg shadow-md hover:bg-red-600 duration-75">Cerrar Sesión</button>
         </div>
         <div v-else class="nav-links-not-loged">
@@ -129,7 +129,7 @@ header{
 }
 
 .nav-links-loged{
-  width: 35%;
+  width: 25%;
   display: flex;
   justify-content: space-between;
   align-items: center;

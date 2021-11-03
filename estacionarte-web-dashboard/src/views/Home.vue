@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-
+  <div class="grid h-screen">
+    <h1 class="self-center text-6xl">Sistema Estacionamiento</h1>
   </div>
 </template>
 
