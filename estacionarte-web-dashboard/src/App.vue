@@ -5,13 +5,14 @@
       <div id="nav">
         <div class="logo">
           <router-link to="/" class="link-home">
-            <h1 class="text-3xl font-bold">Estacionarte</h1>
+          <img src="@/assets/EstacionarteIcono.png" alt="logo estacionarte" class="w-20">
+            <!-- <h1 class="text-3xl font-bold">Estacionarte</h1> -->
           </router-link>
         </div>
 
 
-        <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged">
-          <!-- <router-link to="/profile" class="mr-4">{{ store.getters.getParkingName() }}</router-link> -->
+        <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged w-full">
+          <router-link to="/" class="mr-4">{{ store.getters.getParkingName() }}</router-link>
           <router-link to="/dashboard" class="">Dashboard</router-link>
           <button @click.prevent="signOut" class="text-white text-lg font-bold bg-red-500 p-3 rounded-lg shadow-md hover:bg-red-600 duration-75">Cerrar Sesión</button>
         </div>
@@ -129,7 +130,7 @@ header{
 }
 
 .nav-links-loged{
-  width: 25%;
+  width: 35%;
   display: flex;
   justify-content: space-between;
   align-items: center;

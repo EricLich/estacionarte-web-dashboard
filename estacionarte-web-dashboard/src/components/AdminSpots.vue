@@ -1,7 +1,7 @@
 <template>
-    <div class="flex self-start flex-col bg-white border-2 rounded-md w-full h-full mt-4 shadow-lg p-10">
+    <div class="flex self-start flex-col bg-white border-2 rounded-md w-full h-4/6 mt-4 shadow-lg p-10">
         <h3 class="text-2xl text-left">Agregar espacio de estacionamiento</h3>
-        <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6">
+        <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6 h-100">
             <div class="mb-4">
                 <label class="block text-gray-700 text-m font-bold mb-2 text-left" for="spotName">
                     Identificador del lugar
@@ -52,15 +52,20 @@
             </div>
         </form>
     </div>
-    <div class="flex flex-col self-start bg-white border-2 rounded-md w-full h-full shadow-lg px-8 pt-6 pb-8 mb-4 mt-4 ">        
+    <div class="flex flex-col self-start bg-white border-2 rounded-md w-full h-4/6 shadow-lg px-8 pt-6 pb-8 mb-4 mt-4 overflow-scroll">        
         <h3 class="text-2xl w-full mt-5 mb-5 text-left">Listado de espacios de estacionamiento</h3>
+        <input type="text" v-model="inputValue" placeholder="Buscar espacio" class="mb-5 align-self-start w-full px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
         <AdminSpot v-for="(spot) in spots" :key="spot.id" :spot="spot" @editSpot="editSpot"/>
+        <div v-if="noMatches" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
+            <strong class="font-bold">Ups!</strong><br>
+            <span class="block sm:inline">No hay identificadores que coincidan</span>
+        </div>   
     </div>  
 </template>
 
 <script lang="ts">
 import AdminSpot from './AdminSpot.vue';
-import { defineComponent, reactive, inject, onBeforeMount, ref } from 'vue';
+import { defineComponent, reactive, inject, onBeforeMount, ref, watch } from 'vue';
 import { db } from '../utils/firebaseSetup';
 
 export default defineComponent({
@@ -71,6 +76,8 @@ export default defineComponent({
   setup(props){
 
     const store:any = inject('store');
+
+    let inputValue = ref<String>('')
 
     let newSpot = reactive({
         active: true as Boolean,
@@ -84,13 +91,15 @@ export default defineComponent({
         empty: false
     })
 
-    let spots = reactive<any[]>([]);
+    let spots = ref<any[]>([]);
 
-    let add = ref(true);
+    let add = ref<Boolean>(true);
     
-    let spotToEditId = ref('');
+    let spotToEditId = ref<String>('');
 
-    let nameBeforeEdit = ref('')
+    let nameBeforeEdit = ref<String>('')
+
+    let noMatches = ref<Boolean>(false);
 
     const saveNewSpot = async () => { 
         validation.repeatedName = false;
@@ -110,16 +119,16 @@ export default defineComponent({
     onBeforeMount(async () => {
         await db.collection('ParkingSpots').where('parkingID', '==', newSpot.parkingID).onSnapshot(snapshot => {  
             newSpot.spotName = '';
-            spots.splice(0, spots.length)
+            spots.value.splice(0, spots.value.length)
             snapshot.docs.map((doc, index) => {
-                spots.push({...doc.data()})
-                spots[index].id = doc.id                                
+                spots.value.push({...doc.data()})
+                spots.value[index].id = doc.id                                
             })
         })
     })
 
     const checkSpotName = ():boolean => {
-        if(spots.find(spot => spot.spotName == newSpot.spotName) == undefined){
+        if(spots.value.find(spot => spot.spotName == newSpot.spotName) == undefined){
             return true
         }else{
             return false;
@@ -179,6 +188,17 @@ export default defineComponent({
         add.value = !add.value;
     }
 
+    let spotsCopy = spots.value;
+    watch(inputValue, () => {
+        spots.value = spotsCopy;
+        spots.value = spots.value.filter(spot => spot.spotName.toLowerCase().includes(inputValue.value.toLowerCase()))
+        if(spots.value.length == 0){
+            noMatches.value = true;
+        }else{
+            noMatches.value = false;
+        }
+    })
+
     return{
         store,
         newSpot, 
@@ -189,7 +209,9 @@ export default defineComponent({
         editSpotPassed,
         spotToEditId,
         validation,
-        cancelEdit,               
+        cancelEdit,   
+        inputValue,
+        noMatches            
     }
 
   }

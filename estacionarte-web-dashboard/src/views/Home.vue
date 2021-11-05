@@ -1,6 +1,6 @@
 <template>
-  <div class="grid h-screen">
-    <h1 class="self-center text-6xl">Sistema Estacionamiento</h1>
+  <div class="grid h-screen place-items-center">
+    <img src="../assets/EstacionarteLogo.png" alt="" class="w-2/4">
   </div>
 </template>
 
