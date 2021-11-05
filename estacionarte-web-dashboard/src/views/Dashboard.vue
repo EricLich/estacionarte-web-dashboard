@@ -2,15 +2,15 @@
     <div class="flex flex-col container ">
         <div class="flex flex-row mt-10 dash-links">
             <div @click="changeTab(tabs.PARKED)" :class="{'active-tab' : (activeTab == tabs.PARKED)}" class="tab text-3xl mr-10 text-gray-300">Espacios Ocupados ({{ parkedCount }})</div>
-            <div @click="changeTab(tabs.RESERVED)" v-if="reservations.length > 0" :class="{'active-tab' : (activeTab == tabs.RESERVED)}" class="tab text-3xl mr-10 text-gray-300">Reservas Pendientes ({{ reserveCount }})</div>
+            <div @click="changeTab(tabs.RESERVED)" :class="{'active-tab' : (activeTab == tabs.RESERVED)}" class="tab text-3xl mr-10 text-gray-300">Reservas Pendientes ({{ reserveCount }})</div>
             <div @click="changeTab(tabs.ADMIN)" :class="{'active-tab' : (activeTab == tabs.ADMIN)}" class="tab text-3xl mr-10 text-gray-300">Administrar Espacios</div>
         </div>
         <div class="h-auto py-4 px-8 text-lg bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
-            <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" @input="filter" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
+            <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar" @end="carLeaving" @cancel="cancelReservation"/>                    
-                <div v-if="parkedCount.value == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
+                <div v-if="parkedCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>            
@@ -18,7 +18,7 @@
 
             <div v-if="activeTab == tabs.RESERVED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <Reserve v-for="reservation in reservations" :key="reservation.id" :reservation="reservation" @proceedReservation="moveSpotToFilled" @cancel="cancelReservation"/>
-                <div v-if="reserveCount.value == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
+                <div v-if="reserveCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>             
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref, watch, inject, onBeforeMount } from 'vue';
+import { defineComponent, ref, watch, inject, onBeforeMount } from 'vue';
 import ParkedCar from '@/components/ParkedCar.vue';
 import Reserve from '@/components/Reserve.vue';
 import AdminSpots from '@/components/AdminSpots.vue'
@@ -56,18 +56,15 @@ export default defineComponent({
 
         let activeTab = ref<String>(tabs.PARKED);
 
-        let parkedCars = reactive<any[]>([]);
+        let parkedCars = ref<any[]>([]);
 
-        let reservations = reactive<any[]>([])
+        let reservations = ref<any[]>([])
              
+        let parkedCount = ref(parkedCars.value.length);
 
-        let parkedCount = computed<Number>(() => {
-            return parkedCars.length == 0 ? 0 : parkedCars.length;
-        })
+        let reserveCount = ref(reservations.value.length);
 
-        let reserveCount = computed<Number>(() => {
-            return  reservations.length == 0 ? 0 : reservations.length;
-        })
+
 
         function changeTab(selectedTab: String){
             activeTab.value = selectedTab;
@@ -76,28 +73,30 @@ export default defineComponent({
 
         onBeforeMount(async () => {
             await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
-                parkedCars.splice(0, parkedCars.length)
+                //parkedCars.value.splice(0, parkedCars.value.length)
                 //reservations.splice(0, reservations.length)
                 let indexRes = ref(0);
                 let indexParked = ref(0);
-                snapShot.docs.map(async doc => {
+                snapShot.docs.filter(async doc => {
                     let spot:any = await db.collection('ParkingSpots').doc(doc.data().parkingSpotID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))                 
                     let vehicle:any = await db.collection('Vehicles').doc(doc.data().vehicleID).get().then(snapShot => snapShot.data()).catch(err => console.log(err))
                     if(doc.data().active && doc.data().userArrivedDate == null && doc.data().cancelationDate == null){
-                        indexRes.value == 0 ? reservations.splice(0, reservations.length) : false
-                        reservations.push({...doc.data()})                        
-                        reservations[indexRes.value].id = doc.id;                    
-                        reservations[indexRes.value].vehicle = vehicle;
-                        reservations[indexRes.value].spot = spot;
+                        indexRes.value == 0 ? reservations.value.splice(0, reservations.value.length) : false
+                        reservations.value.push({...doc.data()})                        
+                        reservations.value[indexRes.value].id = doc.id;                    
+                        reservations.value[indexRes.value].vehicle = vehicle;
+                        reservations.value[indexRes.value].spot = spot;
                         indexRes.value++;                 
                     }else if(doc.data().userArrivedDate != null && doc.data().userLeftDate == null && doc.data().active){
-                        indexParked.value == 0 ? parkedCars.splice(0, parkedCars.length) : false
-                        parkedCars.push({...doc.data()})
-                        parkedCars[indexParked.value].id = doc.id;                    
-                        parkedCars[indexParked.value].vehicle = vehicle;
-                        parkedCars[indexParked.value].spot = spot                  
+                        indexParked.value == 0 ? parkedCars.value.splice(0, parkedCars.value.length) : false
+                        parkedCars.value.push({...doc.data()})
+                        parkedCars.value[indexParked.value].id = doc.id;                    
+                        parkedCars.value[indexParked.value].vehicle = vehicle;
+                        parkedCars.value[indexParked.value].spot = spot                  
                         indexParked.value++;
                     }
+                    parkedCount.value = parkedCars.value.length;
+                    reserveCount.value = reservations.value.length;
                 })
                 indexRes.value = 0;
                 indexParked.value = 0;
@@ -105,42 +104,31 @@ export default defineComponent({
         })           
 
         const moveSpotToFilled = (resToMove: any) => {            
-            reservations.splice(reservations.findIndex(res => res.id == resToMove.id), 1)
+            reservations.value.splice(reservations.value.findIndex(res => res.id == resToMove.id), 1)
             let a = new Date();
             let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes();
             resToMove.userArrivedDate = date;
             db.collection('Reservations').doc(resToMove.id).update({userArrivedDate: date, active:true});
-            if(reservations.length == 0){
+            if(reservations.value.length == 0){
                 activeTab.value = tabs.PARKED;
-            }else if(reservations.length == 0 && parkedCars.length == 0){
+            }else if(reservations.value.length == 0 && parkedCars.value.length == 0){
                 activeTab.value = tabs.ADMIN;
             }
-        }
-
+        }       
         
-        
-        /* watch(inputValue, () => {         
+        const parkedCopy = parkedCars.value
+        const reserveCopy = reservations.value
+        watch(inputValue, () => {       
+            parkedCars.value = parkedCopy;
+            reservations.value = reserveCopy;                
             if(activeTab.value == tabs.PARKED){
-                parkedCars = parkedCopy;
-                parkedCars = parkedCars.filter(car => car.vehicle.licensePlate.includes(inputValue.value))    
+                parkedCars.value = parkedCars.value.filter(car => car.vehicle.licensePlate.toLowerCase().includes(inputValue.value)) 
+                parkedCount.value = parkedCars.value.length
             }else if(activeTab.value == tabs.RESERVED){                
-                reservations = reservCopy;                
-                reservations = reservations.filter(reserve => reserve.vehicle.licensePlate.includes(inputValue.value))
+                reservations.value = reservations.value.filter(reserve => reserve.vehicle.licensePlate.toLowerCase().includes(inputValue.value))
+                reserveCount.value = reservations.value.length
             }
-        }) */
-
-        /* TERMINAR FILTRO! */
-        const parkedCopy = parkedCars
-        const reservCopy = reservations
-        const filter = () => {
-            if(activeTab.value == tabs.PARKED){
-                parkedCars = parkedCopy;
-                parkedCars = parkedCars.filter(car => car.vehicle.licensePlate.includes(inputValue.value))   
-            }else if(activeTab.value == tabs.RESERVED){                
-                reservations = reservCopy;                
-                reservations = reservations.filter(reserve => reserve.vehicle.licensePlate.includes(inputValue.value))
-            }
-        }
+        })
 
         const carLeaving = async (parked:any) => {            
             let a = new Date()
@@ -149,7 +137,7 @@ export default defineComponent({
                                         .then(res => {
                                             db.collection('ParkingSpots').doc(parked.parkingSpotID.toString()).update({available: true})
                                                                          .then(res => {
-                                                                            parkedCars.splice(parkedCars.findIndex(reserve => reserve.id == parked.id), 1)
+                                                                            parkedCars.value.splice(parkedCars.value.findIndex(reserve => reserve.id == parked.id), 1)
                                                                          }) 
                                                                          .catch(err => console.log('error en update de spot'))
                                         })
@@ -178,8 +166,7 @@ export default defineComponent({
             changeTab,
             moveSpotToFilled,
             carLeaving,
-            cancelReservation,
-            filter            
+            cancelReservation,                    
         }
     },
 })
