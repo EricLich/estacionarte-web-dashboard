@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border-2 rounded-md min-w-auto w-full h-auto mt-5 shadow-lg p-6 align-center justify-items-start">
+  <div class="flex flex-col border-2 rounded-md min-w-auto w-full h-80 mt-5 shadow-lg p-6 align-center justify-items-start">
     <div class="flex flex-col align-baseline">
         <h2 class="text-3xl font-bold self-start mb-2">Patente: {{ parked.vehicle.licensePlate }}</h2>
         <h2 class="text-3xl font-bold self-start mb-2">Lugar: {{ parked.spot.spotName }}</h2>

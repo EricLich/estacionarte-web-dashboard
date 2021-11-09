@@ -5,7 +5,7 @@
       <div id="nav">
         <div class="logo">
           <router-link to="/" class="link-home">
-          <img src="@/assets/EstacionarteIcono.png" alt="logo estacionarte" class="w-20">
+          <img src="@/assets/EstacionarteLogoMini.png" alt="logo estacionarte" class="w-16">
             <!-- <h1 class="text-3xl font-bold">Estacionarte</h1> -->
           </router-link>
         </div>
@@ -27,7 +27,7 @@
 </div>
 </template>
 
-<script >
+<script lang="ts">
 import { defineComponent, onBeforeMount, provide } from 'vue'
 import './assets/tailwind.css'
 import firebase from 'firebase/compat/app'
@@ -86,7 +86,8 @@ export default defineComponent({
 
 header{
   width: 100%;
-  background-color: #004360;
+  /*background-color: #6200EE;*/
+  background-image: linear-gradient(to right, #6200EE, #A379DF);
 }
 
 .container{
