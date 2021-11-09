@@ -10,7 +10,7 @@
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <ParkedCar v-for="parkedCar in parkedCars" :key="parkedCar.id" :parkedCar="parkedCar" @end="carLeaving" @cancel="cancelReservation"/>                    
-                <div v-if="parkedCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
+                <div v-if="parkedCount == 0" class="bg-red-100 h-20 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>            
@@ -18,7 +18,7 @@
 
             <div v-if="activeTab == tabs.RESERVED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">
                 <Reserve v-for="reservation in reservations" :key="reservation.id" :reservation="reservation" @proceedReservation="moveSpotToFilled" @cancel="cancelReservation"/>
-                <div v-if="reserveCount == 0" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
+                <div v-if="reserveCount == 0" class="bg-red-100 h-20 border border-red-400 text-red-700 px-4 py-3 rounded relative w-full" role="alert">
                     <strong class="font-bold">Ups!</strong><br>
                     <span class="block sm:inline">No hay patentes que coincidan</span>
                 </div>             
