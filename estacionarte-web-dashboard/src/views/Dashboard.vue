@@ -175,7 +175,8 @@ export default defineComponent({
 <style scoped>
 
     .active-tab{
-        color: #015275;
+          color : #9d74d7;
+
         font-weight: bold;
     }
 
