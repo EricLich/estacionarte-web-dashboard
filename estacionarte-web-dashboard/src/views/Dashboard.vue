@@ -67,8 +67,10 @@ export default defineComponent({
 
 
         function changeTab(selectedTab: String){
-            activeTab.value = selectedTab;
             inputValue.value = '';
+            activeTab.value = selectedTab;     
+            parkedCount.value = parkedCopy.length;
+            reserveCount.value = reserveCopy.length;       
         }
 
         onBeforeMount(async () => {
