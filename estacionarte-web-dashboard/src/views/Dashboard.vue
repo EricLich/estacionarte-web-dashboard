@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, inject, onBeforeMount } from 'vue';
+import { defineComponent, ref, watch, inject, onBeforeMount, onMounted } from 'vue';
 import ParkedCar from '@/components/ParkedCar.vue';
 import Reserve from '@/components/Reserve.vue';
 import AdminSpots from '@/components/AdminSpots.vue'
@@ -72,11 +72,11 @@ export default defineComponent({
             parkedCount.value = parkedCopy.length;
             reserveCount.value = reserveCopy.length;       
         }
-
+        
         onBeforeMount(async () => {
             await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
-                //parkedCars.value.splice(0, parkedCars.value.length)
-                //reservations.splice(0, reservations.length)
+                parkedCars.value.splice(0, parkedCars.value.length)
+                //reservations.value.splice(0, reservations.value.length)
                 let indexRes = ref(0);
                 let indexParked = ref(0);
                 snapShot.docs.filter(async doc => {
@@ -89,7 +89,7 @@ export default defineComponent({
                         reservations.value[indexRes.value].vehicle = vehicle;
                         reservations.value[indexRes.value].spot = spot;
                         indexRes.value++;                 
-                    }else if(doc.data().userArrivedDate != null && doc.data().userLeftDate == null && doc.data().active){
+                    }else if(doc.data().userArrivedDate != null && doc.data().userLeftDate == null && doc.data().active /* && doc.data().cancelationDate != null */){
                         indexParked.value == 0 ? parkedCars.value.splice(0, parkedCars.value.length) : false
                         parkedCars.value.push({...doc.data()})
                         parkedCars.value[indexParked.value].id = doc.id;                    
@@ -102,11 +102,12 @@ export default defineComponent({
                 })
                 indexRes.value = 0;
                 indexParked.value = 0;
-            })            
-        })           
+            })
+        })
+
 
         const moveSpotToFilled = (resToMove: any) => {            
-            reservations.value.splice(reservations.value.findIndex(res => res.id == resToMove.id), 1)
+            reservations.value.splice(reservations.value.findIndex(res => res.id === resToMove.id), 1)
             let a = new Date();
             let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes();
             resToMove.userArrivedDate = date;
@@ -138,20 +139,28 @@ export default defineComponent({
             db.collection('Reservations').doc(parked.id).update({active: false, userLeftDate: date})
                                         .then(res => {
                                             db.collection('ParkingSpots').doc(parked.parkingSpotID.toString()).update({available: true})
-                                                                         .then(res => {
-                                                                            parkedCars.value.splice(parkedCars.value.findIndex(reserve => reserve.id == parked.id), 1)
+                                                                         .then(res => {                                                                             
+                                                                            parkedCars.value.splice(parkedCars.value.findIndex(reserve => reserve.id === parked.id), 1)                                                                            
                                                                          }) 
                                                                          .catch(err => console.log('error en update de spot'))
                                         })
                                         .catch(err => console.log('error en update de reservations')) 
         }
 
-        const cancelReservation = (reserve: any) => {
+        const cancelReservation = (reserve:any) => {
             let a = new Date();
             let date = a.getDate() + '-' + (a.getMonth() + 1) + '-' + a.getFullYear() + ' ' + a.getHours() + ':' + a.getMinutes();
             db.collection('Reservations').doc(reserve.id).update({active: false, cancelationDate: date})
-                                                            .then(async res => {
-                                                                await db.collection('ParkingSpots').doc(reserve.parkingSpotID).update({available: true})
+                                                            .then(res => {      
+                                                                if(reserve.type == 'reserve'){                                                                    
+                                                                    //reservations.value.splice(reservations.value.findIndex(r => r.id === reserve.id), 1)
+                                                                    reservations.value.length == 0 ? reserveCount.value = 0 : false
+                                                                }else if(reserve.type == 'parked'){                                                                    
+                                                                    parkedCars.value.splice(parkedCars.value.findIndex(parked => parked.id === reserve.id), 1)
+                                                                    parkedCars.value.length == 0 ? parkedCount.value = 0 : false
+                                                                }
+                                                                db.collection('ParkingSpots').doc(reserve.parkingSpotID).update({available: true})                                                               
+
                                                             })
                                                             .catch(err => console.log(err.message))
         }

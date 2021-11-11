@@ -32,11 +32,14 @@ export default defineComponent({
         let parked = reactive({...props.parkedCar})
 
         const end = () => {
-          emit('end', props.parkedCar)
+          confirm('Está seguro que quiere terminar el turno?') ? emit('end', props.parkedCar) : false;          
         }
 
         const cancel = () => {
-          emit('cancel', props.parkedCar)
+          if(confirm('Está seguro de que desea cancelar esta reserva?')){
+            let reserve = {...props.parkedCar, type: 'parked'}
+            emit('cancel', reserve)
+          }
         }
 
         return{
