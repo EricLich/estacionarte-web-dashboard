@@ -16,7 +16,6 @@
     </div>
   </div>
 </template>
-
 <script lang="ts">
 import Reservation from '@/interfaces/Reservation';
 import { defineComponent, PropType, reactive } from 'vue';
