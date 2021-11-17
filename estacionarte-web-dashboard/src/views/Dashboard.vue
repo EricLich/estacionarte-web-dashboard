@@ -153,7 +153,7 @@ export default defineComponent({
             db.collection('Reservations').doc(reserve.id).update({active: false, cancelationDate: date})
                                                             .then(res => {      
                                                                 if(reserve.type == 'reserve'){                                                                    
-                                                                    //reservations.value.splice(reservations.value.findIndex(r => r.id === reserve.id), 1)
+                                                                    reservations.value.splice(reservations.value.findIndex(r => r.id === reserve.id), 1)
                                                                     reservations.value.length == 0 ? reserveCount.value = 0 : false
                                                                 }else if(reserve.type == 'parked'){                                                                    
                                                                     parkedCars.value.splice(parkedCars.value.findIndex(parked => parked.id === reserve.id), 1)

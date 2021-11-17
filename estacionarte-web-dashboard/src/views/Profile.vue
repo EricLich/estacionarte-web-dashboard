@@ -1,16 +1,21 @@
 <template>
-    
+    {{user}}
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, inject } from 'vue'
+
 
 export default defineComponent({
     setup() {
-        /* Perfil de Estacionamiento:
-        Agregar tarifas
-        Agregar horarios
-         */
+        const store:any = inject('store') //injecting store
+        const user = store.getters.getUser()
+
+
+        return{
+            user,
+        }
+
     },
 })
 </script>

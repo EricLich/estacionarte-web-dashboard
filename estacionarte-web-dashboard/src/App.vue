@@ -12,7 +12,7 @@
 
 
         <div v-if="store.getters.getUserSignedIn()" class="nav-links-loged w-full">
-          <router-link to="/" class="mr-4">{{ store.getters.getParkingName() }}</router-link>
+          <router-link to="/profile" class="mr-4">{{ store.getters.getParkingName() }}</router-link>
           <router-link to="/dashboard" class="">Dashboard</router-link>
           <button @click.prevent="signOut" class="text-white text-lg font-bold bg-red-500 p-3 rounded-lg shadow-md hover:bg-red-600 duration-75">Cerrar Sesión</button>
         </div>
