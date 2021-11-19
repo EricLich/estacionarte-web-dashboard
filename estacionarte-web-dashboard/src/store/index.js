@@ -4,6 +4,7 @@ const state = reactive({
   user:{},
   userSignedIn: false,
   editing: false,
+  loading: false
 });
 
 const methods = {
@@ -21,6 +22,9 @@ const methods = {
   changeEditingStatus(){
     state.editing = !state.editing;
   },
+  changeLoadingStatus(){
+    state.loading = !state.loading
+  }
 }
 
 const getters = {
@@ -29,6 +33,12 @@ const getters = {
   },
   getUserId(){
     return state.user.uid;
+  },
+  getUserCuit(){
+    return state.user.cuit;
+  },
+  getUserAddress(){
+    return state.user.address;
   },
   getUserSignedIn(){
     return state.userSignedIn;
@@ -39,6 +49,9 @@ const getters = {
   getEditing(){
     return state.editing
   },
+  getLoadingStatus(){
+    return state.loading
+  }
 }
 
 

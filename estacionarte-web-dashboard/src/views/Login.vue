@@ -3,7 +3,7 @@
   <h2 class="text-4xl mb-10 mt-10 text-left">Inicia Sesión</h2>
   <div class="flex justify-center align-center">
       <div class="w-full max-w-xs">
-      <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+      <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" @keydown.enter="login">
         <div v-if="validation.passValidation == false" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 mb-2 rounded" role="alert">
             <p class="text-left pl-2 text-red-800">Usuario o contraseña incorrectos</p>
         </div>
@@ -21,7 +21,7 @@
         </div>
         <div class="flex items-center justify-between">
           <button @click.prevent="login" class="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
-            Entrar
+            {{ !store.getters.getLoadingStatus() ? 'Entrar' : 'Cargando...'}}
           </button>
         </div>
       </form>
@@ -53,6 +53,7 @@ export default defineComponent({
     const router = useRouter();
     async function login(){      
       try{
+        store.methods.changeLoadingStatus()
         if(validate()){
           validation.passValidation = true;
           firebase.auth().signInWithEmailAndPassword(email.value, password.value)
@@ -60,13 +61,16 @@ export default defineComponent({
                 let doc =  await db.collection('ParkingUsers').doc(res.user?.uid).get();
                 if(doc.data() != undefined){    
                   localStorage.setItem('logedUser', JSON.stringify(doc.data()))
-                  store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))                     
+                  store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))   
+                  store.methods.changeLoadingStatus()                  
                   router.push('/dashboard')
                 }else{
+                  store.methods.changeLoadingStatus()
                   console.log("No es un usuario parking")
                 }
               })
               .catch(err => {
+                store.methods.changeLoadingStatus()
                 let noExistingUser = 'There is no user record corresponding to this identifier.';
                 let passErronea = 'The password is invalid or the user does not have a password.';
                   if(err.message.toString().includes(passErronea) || err.message.toString().includes(noExistingUser)){
@@ -75,9 +79,11 @@ export default defineComponent({
                 })
           
         }else{
+          store.methods.changeLoadingStatus()
           validation.passValidation = false;          
         }
       }catch(err: any){        
+        store.methods.changeLoadingStatus()
         let noExistingUser = 'There is no user record corresponding to this identifier.';
         let passErronea = 'The password is invalid or the user does not have a password.';
         let emailAlreadyExists = 'The email address is already in use by another account.';
@@ -99,6 +105,7 @@ export default defineComponent({
     }
 
     return{
+      store,
       email,
       password,
       login,

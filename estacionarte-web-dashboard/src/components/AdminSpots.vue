@@ -1,8 +1,8 @@
 <template>
     <div class="flex self-start flex-col bg-white border-2 rounded-md w-full h-4/6 mt-4 shadow-lg p-10">
         <h3 class="text-2xl text-left">Agregar espacio de estacionamiento</h3>
-        <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6 h-100">
-            <div class="mb-4">
+        <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4 mt-6 h-100" @keydown.enter="!store.getters.getEditing() ? triggerSave : null">
+            <div class="mb-4" v-if="!multipleAdd">
                 <label class="block text-gray-700 text-m font-bold mb-2 text-left" for="spotName">
                     Identificador del lugar
                 </label>
@@ -14,23 +14,31 @@
                     <p class="text-left pl-2 text-red-800">El identificador del lugar no puede estar vacio.</p>
                 </div>
             </div>
+
+
+            <!-- AGERGADO MULTIPLE -->
+            <div class="mb-4" v-if="multipleAdd">
+                <label class="block text-gray-700 text-m font-bold mb-2 text-left" for="spotName">
+                    Indique la cantidad de lugares que desea crear (min 2, max 100)
+                </label>
+                <input v-model="cantSpots" min="2" max="100" class="shadow appearance-none border rounded w-full py-4 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="spotName" type="number" placeholder="Identificador del lugar">
+                <div v-if="validation.repeatedName" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 my-2 rounded" role="alert">
+                    <p class="text-left pl-2 text-red-800">No puede haber dos lugares con el mismo identificador.</p>
+                </div>
+                <div v-if="validation.empty" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 my-2 rounded" role="alert">
+                    <p class="text-left pl-2 text-red-800">El identificador del lugar no puede estar vacio.</p>
+                </div>
+            </div>
             
-            <!-- <label class="block text-gray-700 text-m font-bold mb-2 text-left">
-                <span class="text-gray-700">Tipo de Vehiculo aceptado</span>
-                <select class="shadow form-select block w-full mt-1 mb-2 border py-4 px-2 rounded focus:outline-none focus:shadow-outline">
-                    <option>Automovil</option>
-                    <option>Camioneta</option>
-                    <option>Moto</option>
-                </select>
-            </label> -->
-            <label class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
+
+            <label v-if="!multipleAdd" class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
                 <span class="text-gray-700">Disponible para uso</span>
                 <select v-model="newSpot.available" class="shadow form-select block w-full mt-1 mb-2 border py-4 px-2 rounded focus:outline-none focus:shadow-outline">
                     <option :value="true">Libre</option>
                     <option :value="false">Ocupado</option>
                 </select>
             </label>
-            <label class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
+            <label v-if="!multipleAdd" class="block text-gray-700 text-m font-bold mt-4 mb-2 text-left">
                 <span class="text-gray-700">Estado</span>
                 <select v-model="newSpot.active" class="shadow form-select block w-full mt-1 mb-2 border py-4 px-2 rounded focus:outline-none focus:shadow-outline">
                     <option :value="true">Activo</option>
@@ -38,8 +46,11 @@
                 </select>
             </label>
             <div v-if="!store.getters.getEditing()" class="flex items-center justify-between">
-                <button @click.prevent="saveNewSpot()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
+                <button @click.prevent="saveNewSpot" v-if="!multipleAdd" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
                     Agregar
+                </button>
+                <button @click.prevent="addMultiple"  class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4" type="button">
+                    Agregar varios
                 </button>
             </div>
             <div v-if="store.getters.getEditing()" class="flex items-center justify-between">
@@ -78,6 +89,7 @@ export default defineComponent({
     const store:any = inject('store');
 
     let inputValue = ref<String>('')
+    const multipleAdd = ref<Boolean>(false)
 
     let newSpot = reactive({
         active: true as Boolean,
@@ -91,32 +103,69 @@ export default defineComponent({
         empty: false
     })
 
+    const cantSpots = ref<number>(0)
     let spots = ref<any[]>([]);
-
     let add = ref<Boolean>(true);
-    
     let spotToEditId = ref<String>('');
-
     let nameBeforeEdit = ref<String>('')
-
     let noMatches = ref<Boolean>(false);
+    let spotsCopy:any[];
 
-    const saveNewSpot = async () => { 
+    const triggerSave = () => {
+        saveNewSpot()
+    }
+
+    const saveNewSpot = async () => {         
         validation.repeatedName = false;
         validation.empty = false;
         if(newSpot.spotName == ''){
             validation.empty = true;
         }else{
             if(checkSpotName()){
-                await db.collection('ParkingSpots').add(newSpot)                                        
+                await db.collection('ParkingSpots').add(newSpot)   
+                await getSpots()                                     
             }else{
                 validation.repeatedName = true;
             }
+        }   
+    }
+
+
+    const addMultiple = async ():Promise<void> => {
+        if(!multipleAdd.value){
+            multipleAdd.value = !multipleAdd.value;
+        }else{
+            let realCantSpots = Math.floor(cantSpots.value) 
+            let parkingIdStore = store.getters.getUserId();
+            let spotsToAdd = []
+            for(let i:number = 1; i <= realCantSpots; i++){
+                let ps = {
+                            active: true,
+                            available: true,
+                            parkingID: parkingIdStore,
+                            spotName: `Spot ${spots.value.length + i}`
+                         }
+                spotsToAdd.push(ps)
+                
+            }
+                
+            spotsToAdd.forEach(async spot => {
+                try{                
+                    await db.collection('ParkingSpots').add(spot)                
+                }catch(err){                
+                    console.log(err)
+                }
+            })  
+            multipleAdd.value = !multipleAdd.value
+            await getSpots()
         }
-        
     }
 
     onBeforeMount(async () => {
+        await getSpots()
+    })
+
+    const getSpots = async () => {
         await db.collection('ParkingSpots').where('parkingID', '==', newSpot.parkingID).onSnapshot(snapshot => {  
             newSpot.spotName = '';
             spots.value.splice(0, spots.value.length)
@@ -125,7 +174,8 @@ export default defineComponent({
                 spots.value[index].id = doc.id                                
             })
         })
-    })
+        spotsCopy = spots.value
+    }
 
     const checkSpotName = ():boolean => {
         if(spots.value.find(spot => spot.spotName == newSpot.spotName) == undefined){
@@ -135,7 +185,7 @@ export default defineComponent({
         }
     }
 
-    const editSpot = (parkingSpot: any) => {
+    const editSpot = (parkingSpot: any):void => {
         if(store.getters.getEditing()){
             validation.empty = false;
             validation.repeatedName = false   
@@ -177,7 +227,7 @@ export default defineComponent({
         }
     }
 
-    const cancelEdit = () => {
+    const cancelEdit = ():void => {
         store.methods.changeEditingStatus();
         nameBeforeEdit.value = '';
         newSpot.spotName = '';
@@ -188,8 +238,7 @@ export default defineComponent({
         add.value = !add.value;
     }
 
-    let spotsCopy = spots.value;
-    watch(inputValue, () => {
+    watch(inputValue, ():void => {
         spots.value = spotsCopy;
         spots.value = spots.value.filter(spot => spot.spotName.toLowerCase().includes(inputValue.value.toLowerCase()))
         if(spots.value.length == 0){
@@ -211,7 +260,11 @@ export default defineComponent({
         validation,
         cancelEdit,   
         inputValue,
-        noMatches            
+        noMatches,
+        triggerSave,
+        cantSpots,
+        multipleAdd,
+        addMultiple            
     }
 
   }

@@ -57,7 +57,7 @@
                     <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-adress">
                         Altura
                     </label>
-                    <input required v-model="newUser.number" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Altura">
+                    <input required v-model="newUser.number" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres-number" type="text" placeholder="Altura">
                     <div v-if="!validation.address"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
                         <p class="text-left pl-2 text-red-800">El campo de número no puede quedar vacío.</p>
                     </div>
@@ -90,8 +90,8 @@
             </div>
 
             <div class="flex flex-wrap">
-                <button @click.prevent="signupAuth" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded">
-                    Registrarse
+                <button @click.prevent="signupAuth" @keydown.enter="signupAuth" :disabled="store.getters.getLoadingStatus()" :class="store.getters.getLoadingStatus() && 'bg-green-500'" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded">
+                    {{ !store.getters.getLoadingStatus() ? 'Registrarse' : 'Cargando...'}}
                 </button>
             </div>
             
@@ -138,6 +138,7 @@ export default defineComponent({
     
 
         const signupAuth = async () => {
+            store.methods.changeLoadingStatus() // cambia el status de loading a true para mostrar que se esta cargando
             validation.email = true;
             validation.emailExists = false;
             validation.addressExists = false;
@@ -158,7 +159,7 @@ export default defineComponent({
                                 long: longApi
                             },
                         }  
-                        user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : console.log('Error de id'); //modifica el nuevo usuario en firestore en la coleccion "ParkingUsers" para que corresponda al agregado en auth                                            
+                        user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : store.methods.changeLoadingStatus(); //modifica el nuevo usuario en firestore en la coleccion "ParkingUsers" para que corresponda al agregado en auth                                            
                     })
                     .catch(err => {
                         let emailAlreadyExists = 'The email address is already in use by another account.'; 
@@ -168,9 +169,11 @@ export default defineComponent({
                         }else{
                             validation.emailExists = false;
                         }
+                        store.methods.changeLoadingStatus()
                     })
-            }else{                
+            }else{      
                 addressExists ? validation.addressExists = true : validation.addressExists = false;
+                store.methods.changeLoadingStatus()          
             }          
         }
 
@@ -179,6 +182,7 @@ export default defineComponent({
                                                              .then(user => {                                                                 
                                                                     localStorage.setItem('logedUser', JSON.stringify({uid, ...newUser}))                                                                    
                                                                     store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!)); //el ! significa que no va a devolver nunca "null" entonces ts no molesta mas
+                                                                    store.methods.changeLoadingStatus();
                                                                     router.push('/dashboard');
                                                              })
                                                              .catch(err => console.log(err))            
@@ -288,6 +292,7 @@ export default defineComponent({
         /*  */
         
         return{
+            store,
             newUser,
             validation,
             signupAuth,

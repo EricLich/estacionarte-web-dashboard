@@ -27,7 +27,7 @@
 </div>
 </template>
 
-<script lang="js">
+<script lang="ts">
 import { defineComponent, onBeforeMount, provide } from 'vue'
 import './assets/tailwind.css'
 import firebase from 'firebase/compat/app'
