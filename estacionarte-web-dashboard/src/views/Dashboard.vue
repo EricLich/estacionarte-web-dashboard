@@ -1,11 +1,11 @@
 <template>
-    <div class="flex flex-col container h-screen">
+    <div class="flex flex-col container h-full">
         <div class="flex flex-row mt-10 dash-links">
             <div @click="changeTab(tabs.PARKED)" :class="{'active-tab' : (activeTab == tabs.PARKED)}" class="tab text-3xl mr-10 text-gray-300">Espacios ocupados ({{ parkedCount }})</div>
             <div @click="changeTab(tabs.RESERVED)" :class="{'active-tab' : (activeTab == tabs.RESERVED)}" class="tab text-3xl mr-10 text-gray-300">Reservas pendientes ({{ reserveCount }})</div>
             <div @click="changeTab(tabs.ADMIN)" :class="{'active-tab' : (activeTab == tabs.ADMIN)}" class="tab text-3xl mr-10 text-gray-300">Administrar espacios</div>
         </div>
-        <div class="h-screen py-4 px-8 text-lg bg-white shadow-lg rounded-lg mt-5 flex flex-col pb-10">
+        <div class="h-98 py-4 px-8 text-lg bg-white shadow-lg rounded-lg mt-2 flex flex-col pb-10">
             <input v-if="activeTab != tabs.ADMIN" type="text" v-model="inputValue" placeholder="Buscar patente" class="mt-5 align-self-start w-1/3 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 relative bg-white rounded text-md border-0 shadow outline-none focus:outline-none focus:ring pr-10"/>
             
             <div v-if="activeTab == tabs.PARKED" class="parked-spots h-full grid lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-2 xs:grid-cols-1 gap-5 mt-5">

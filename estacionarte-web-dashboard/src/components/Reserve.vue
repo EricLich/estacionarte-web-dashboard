@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col border-2 rounded-md min-w-auto w-full h-auto max-h-72 mt-5 shadow-lg p-6 align-center justify-items-start">
+  <div class="flex flex-col border-2 rounded-md min-w-auto w-full h-auto max-h-72 mt-5 shadow-lg p-8 align-center justify-items-start">
     <div class="flex flex-col align-baseline">
         <h2 class="text-4xl font-bold self-start mb-2">Lugar: <span class="text-md">{{ res.spot.spotName }}</span></h2>
         <h3 class="text-2xl font-semibold text-gray-500 self-start mb-2">Vehiculo: {{ res.vehicle.brand }} - {{ res.vehicle.model }}</h3>
