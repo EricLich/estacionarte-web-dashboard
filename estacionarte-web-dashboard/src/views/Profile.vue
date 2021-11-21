@@ -10,6 +10,9 @@
                         Nombre de establecimiento
                     </label>
                     <input :disabled="!edit" v-model="updatedUser.parkingName" :class="edit && 'bg-gray-200'" class="appearance-none block w-full text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-nombre" type="text" placeholder="Nombre establecimiento">                    
+                    <div v-if="updatedUser.parkingName.length < 1" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">El nombre no puede estar vacío</p>
+                    </div>
                 </div>
             </div>
             <div class="flex flex-wrap -mx-3 mb-3">
