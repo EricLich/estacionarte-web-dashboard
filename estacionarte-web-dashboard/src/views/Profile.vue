@@ -51,7 +51,7 @@
                 <button v-if="edit" @click.prevent="updateUser" @keydown.enter="updateUser" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-3 px-5 rounded">
                     {{ !store.getters.getLoadingStatus() ? 'Guardar' : 'Guardando...'}}
                 </button>
-                <button v-if="edit" @click.prevent="edit = !edit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-5 rounded">
+                <button v-if="edit" @click.prevent="cancelEdit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-3 px-5 rounded">
                     Cancelar
                 </button>
             </div>
@@ -86,6 +86,16 @@ export default defineComponent({
         const addressOK = ref<Boolean>(true)
         const addressExists = ref<Boolean>(false)
         const cuitExists = ref<Boolean>(false)
+
+        const cancelEdit = () => {
+            edit.value = !edit.value
+            updatedUser.parkingName = storeUser.parkingName
+            updatedUser.cuit = storeUser.cuit
+            updatedUser.address = storeUser.address
+            nameOK.value == false ? nameOK.value = true : false
+            cuitOK.value == false ? cuitOK.value = true : false
+            addressOK.value == false ? addressOK.value = true : false
+        }
 
         const updateUser = async ():Promise<void> => {
             store.methods.changeLoadingStatus()
@@ -156,7 +166,8 @@ export default defineComponent({
             addressOK,
             cuitExists,
             addressExists,
-            updatedUser
+            updatedUser,
+            cancelEdit
         }
 
     },
