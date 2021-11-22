@@ -21,7 +21,7 @@
                         Cuit
                     </label>
                     <input :disabled="!edit" v-model="updatedUser.cuit" :class="edit && 'bg-gray-200'" class="appearance-none block w-full text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-cuit" type="text" placeholder="CUIT">                    
-                    <div v-if="!cuitOK" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                    <div v-if="updatedUser.cuit.length < 11 || updatedUser.cuit.length > 11" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
                         <p class="text-left pl-2 text-red-800">El cuit debe tener 11 caracteres.</p>
                     </div>
                     <div v-if="cuitExists" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
@@ -35,7 +35,7 @@
                         Dirección
                     </label>
                     <input :disabled="!edit" v-model="updatedUser.address" :class="edit && 'bg-gray-200'" class="appearance-none w-full text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-addres" type="text" placeholder="Dirección">
-                    <div v-if="!addressOK" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                    <div v-if="updatedUser.address.length == 0" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
                         <p class="text-left pl-2 text-red-800">El campo no puede quedar vacío</p>
                     </div>
                     <div v-if="addressExists" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
