@@ -92,9 +92,11 @@ export default defineComponent({
             updatedUser.parkingName = storeUser.parkingName
             updatedUser.cuit = storeUser.cuit
             updatedUser.address = storeUser.address
-            nameOK.value == false ? nameOK.value = true : false
-            cuitOK.value == false ? cuitOK.value = true : false
-            addressOK.value == false ? addressOK.value = true : false
+            nameOK.value = true;
+            cuitOK.value = true
+            addressOK.value = true
+            cuitExists.value = false;
+            addressExists.value = false;
         }
 
         const updateUser = async ():Promise<void> => {
@@ -131,13 +133,14 @@ export default defineComponent({
                             addressOK.value = true
                         }catch(err){
                             store.methods.changeLoadingStatus()
-                            console.log(err, 'aca')
                         }
+                    }else{ // si el cuit existe
+                        store.methods.changeLoadingStatus()
                     }
-                }else{
+                }else{ //si la direcc ya existe
                     store.methods.changeLoadingStatus()
                 }
-            }else{
+            }else{ // si hay algun problema con los campos
                 store.methods.changeLoadingStatus()                
             }
         }
