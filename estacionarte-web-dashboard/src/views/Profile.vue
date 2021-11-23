@@ -126,6 +126,9 @@ export default defineComponent({
                             alert('Usuario actualizado')
                             edit.value = !edit.value
                             store.methods.changeLoadingStatus()
+                            nameOK.value = true
+                            cuitOK.value = true
+                            addressOK.value = true
                         }catch(err){
                             store.methods.changeLoadingStatus()
                             console.log(err, 'aca')
