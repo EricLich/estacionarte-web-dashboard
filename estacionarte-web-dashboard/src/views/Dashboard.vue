@@ -33,9 +33,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, watch, inject, onBeforeMount } from 'vue';
-import ParkedCar from '@/components/ParkedCar.vue';
-import Reserve from '@/components/Reserve.vue';
-import AdminSpots from '@/components/AdminSpots.vue'
+import ParkedCar from '../components/ParkedCar.vue';
+import Reserve from '../components/Reserve.vue';
+import AdminSpots from '../components/AdminSpots.vue'
 import { db } from '../utils/firebaseSetup'
 
 export default defineComponent({
@@ -76,7 +76,7 @@ export default defineComponent({
         onBeforeMount(async () => {
             await db.collection('Reservations').where('parkingID', '==', store.getters.getUserId()).onSnapshot(snapShot => {
                 parkedCars.value.splice(0, parkedCars.value.length)
-                //reservations.value.splice(0, reservations.value.length)
+                reservations.value.splice(0, reservations.value.length)
                 let indexRes = ref(0);
                 let indexParked = ref(0);
                 snapShot.docs.filter(async doc => {
