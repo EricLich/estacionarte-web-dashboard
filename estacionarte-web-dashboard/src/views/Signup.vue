@@ -69,6 +69,20 @@
             <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
                     <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-password">
+                        Teléfono
+                    </label>
+                    <input required v-model="newUser.phoneNumber" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-number" type="text" placeholder="Teléfono">                    
+                    <div v-if="!validation.phoneNumberFilled"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">Debe llenar este campo.</p>
+                    </div>
+                    <div v-if="validation.phoneNumberExists"  class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">Ya existe un usuario con este teléfono.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-3 mb-3">
+                <div class="w-full px-3">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-password">
                         Contraseña
                     </label>
                     <input required v-model="newUser.password" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-password" type="password" placeholder="Contraseña (mínimo 6 caracteres)">                    
@@ -121,13 +135,16 @@ export default defineComponent({
             address: '' as String, 
             number: '' as String,
             password: '' as String, 
-            passRepeat: '' as String 
+            passRepeat: '' as String ,
+            phoneNumber: '' as String,
         })
         
         let validation = reactive({
             parkingName: true as boolean,
             addressExists: false as boolean,
             numberFilled: true as Boolean,
+            phoneNumberFilled: true as Boolean,
+            phoneNumberExists: false as Boolean,
             cuit: true as boolean,
             email: true as boolean,
             emailExists: false as boolean,
@@ -143,34 +160,40 @@ export default defineComponent({
             validation.emailExists = false;
             validation.addressExists = false;
             let addressExists: boolean = await checkAdressExists(newUser.address.toString() + ' ' + newUser.number.toString()); // checkea si la direccion ya existe en la bdd            
-            if(validate() && addressExists == false){   //si los campos ingresados son validos y la direccion no existe, procede                
-                const [latApi, longApi] = await checkLatLong();
-                firebase
-                    .auth()
-                    .createUserWithEmailAndPassword(newUser.email.toString(), newUser.password.toString()) //crea el usuario en auth
-                    .then(user => {
-                        const parkingUser: ParkingUser = { //le da valor a un nuevo usuario 
-                            parkingName: newUser.parkingName.toString(),
-                            cuit: newUser.cuit.toString(),
-                            address: newUser.address.toString() + ' ' + newUser.number.toString(),
-                            phoneNumber: "",
-                            location: {
-                                lat: latApi,
-                                long: longApi
-                            },
-                        }  
-                        user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : store.methods.changeLoadingStatus(); //modifica el nuevo usuario en firestore en la coleccion "ParkingUsers" para que corresponda al agregado en auth                                            
-                    })
-                    .catch(err => {
-                        let emailAlreadyExists = 'The email address is already in use by another account.'; 
-                        
-                        if(err.message.toString().includes(emailAlreadyExists)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
-                            validation.emailExists = true;
-                        }else{
-                            validation.emailExists = false;
-                        }
-                        store.methods.changeLoadingStatus()
-                    })
+            let phoneExists: boolean = await checkPhoneExists(newUser.phoneNumber.toString());
+            if(validate() && addressExists == false){   //si los campos ingresados son validos y la direccion no existe, procede    
+                if(phoneExists == false){
+                    const [latApi, longApi] = await checkLatLong();
+                    firebase
+                        .auth()
+                        .createUserWithEmailAndPassword(newUser.email.toString(), newUser.password.toString()) //crea el usuario en auth
+                        .then(user => {
+                            const parkingUser: ParkingUser = { //le da valor a un nuevo usuario 
+                                parkingName: newUser.parkingName.toString(),
+                                cuit: newUser.cuit.toString(),
+                                address: newUser.address.toString() + ' ' + newUser.number.toString(),
+                                phoneNumber: newUser.phoneNumber.toString(),
+                                location: {
+                                    lat: latApi,
+                                    long: longApi
+                                },
+                            }  
+                            user.user?.uid ? registerParkingUser(parkingUser, user.user.uid) : store.methods.changeLoadingStatus(); //modifica el nuevo usuario en firestore en la coleccion "ParkingUsers" para que corresponda al agregado en auth                                            
+                        })
+                        .catch(err => {
+                            let emailAlreadyExists = 'The email address is already in use by another account.'; 
+                            
+                            if(err.message.toString().includes(emailAlreadyExists)){ //si el error contiene un string con la variable emailAlreadyExists, entonces se mostrara en el form que el mail ya existe en la bdd
+                                validation.emailExists = true;
+                            }else{
+                                validation.emailExists = false;
+                            }
+                            store.methods.changeLoadingStatus()
+                        })
+                }else{
+                    phoneExists ? validation.phoneNumberExists = true : validation.phoneNumberExists = false;
+                    store.methods.changeLoadingStatus()   
+                }            
             }else{      
                 addressExists ? validation.addressExists = true : validation.addressExists = false;
                 store.methods.changeLoadingStatus()          
@@ -196,8 +219,19 @@ export default defineComponent({
             let passCheck = checkPass();
             let passRepeatCheck = checkRepeatPass()
             let numCheck = checkNumber()
+            let phoneCheck = checkPhone()
 
-            return nameCheck && emailCheck && cuitCheck && addressCheck && numCheck && passCheck && passRepeatCheck ? true : false;
+            return nameCheck && emailCheck && phoneCheck && cuitCheck && addressCheck && numCheck && passCheck && passRepeatCheck ? true : false;
+        }
+
+        const checkPhone = ():boolean =>{
+            if(newUser.phoneNumber != ''){
+                validation.phoneNumberFilled = true;
+                return true;
+            }else{
+                validation.phoneNumberFilled = false;
+                return false;
+            }
         }
 
         const checkParkingName = ():boolean => {
@@ -279,6 +313,16 @@ export default defineComponent({
                 return true;
             }            
         }
+        const checkPhoneExists = async (phoneNumber: String) => {            //metodo que devuelve true en caso de que exista el numero de telefono en algun documento y false en el caso contrario
+            const snapshot = await db.collection('ParkingUsers').get()
+            let doc = await snapshot.docs.find(user => user.data().phoneNumber == phoneNumber)
+            console.log(doc)
+            if(doc == undefined){
+                return false;
+            }else{
+                return true;
+            }            
+        }
 
         const checkLatLong = async () => {
             let url = `https://maps.googleapis.com/maps/api/geocode/json?address=${newUser.number}+${newUser.address}+buenos+aires&key=AIzaSyB1JGcj9GhNgv1_mX0zNEa8S7FxwC8adCM`
@@ -288,8 +332,6 @@ export default defineComponent({
             return [lat, long]
         }
 
-        //BUSCAR LA DIRECCION PARA LAT Y LONG
-        /*  */
         
         return{
             store,

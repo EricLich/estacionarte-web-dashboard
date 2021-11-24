@@ -17,6 +17,20 @@
             </div>
             <div class="flex flex-wrap -mx-3 mb-3">
                 <div class="w-full px-3">
+                    <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-telefono">
+                        Número de teléfono.
+                    </label>
+                    <input :disabled="!edit" v-model="updatedUser.phoneNumber" :class="edit && 'bg-gray-200'" class="appearance-none block w-full text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-nombre" type="text" placeholder="Nombre establecimiento">                    
+                    <div v-if="updatedUser.phoneNumber.length < 1" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">El teléfono no puede estar vacío</p>
+                    </div>
+                    <div v-if="phoneExists" class="bg-red-100 border-l-4 border-red-500 text-orange-700 p-2 rounded" role="alert">
+                        <p class="text-left pl-2 text-red-800">El teléfono está asignado a otro usuario</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-3 mb-3">
+                <div class="w-full px-3">
                     <label class="text-left block tracking-wide text-gray-700 text-lg font-bold" for="grid-cuit">
                         Cuit
                     </label>
@@ -75,28 +89,35 @@ export default defineComponent({
         const updatedUser = reactive<any>({
             parkingName: storeUser.parkingName as string,
             cuit: storeUser.cuit as string,
-            address: storeUser.address as string
+            address: storeUser.address as string,
+            phoneNumber: storeUser.phoneNumber as String,
         })
 
         const exAddress = store.getters.getUserAddress()
         const exCuit = store.getters.getUserCuit()
+        const exPhoneNumber = store.getters.getUserPhoneNumber()
 
         const nameOK = ref<Boolean>(true)
         const cuitOK = ref<Boolean>(true)
         const addressOK = ref<Boolean>(true)
+        const phoneOK = ref<Boolean>(true)
         const addressExists = ref<Boolean>(false)
         const cuitExists = ref<Boolean>(false)
+        const phoneExists = ref<Boolean>(false)
 
         const cancelEdit = () => {
             edit.value = !edit.value
             updatedUser.parkingName = storeUser.parkingName
             updatedUser.cuit = storeUser.cuit
             updatedUser.address = storeUser.address
+            updatedUser.phoneNumber = storeUser.phoneNumber
             nameOK.value = true;
             cuitOK.value = true
             addressOK.value = true
+            phoneOK.value = true
             cuitExists.value = false;
             addressExists.value = false;
+            phoneExists.value = false;
         }
 
         const updateUser = async ():Promise<void> => {
@@ -104,8 +125,9 @@ export default defineComponent({
             nameOK.value = updatedUser.parkingName.length > 0
             cuitOK.value = updatedUser.cuit.length == 11
             addressOK.value = updatedUser.address.length > 0
+            phoneOK.value = updatedUser.phoneNumber.length > 0
 
-            if(nameOK.value && cuitOK.value && addressOK.value){
+            if(nameOK.value && cuitOK.value && addressOK.value && phoneOK.value){
                 if(exAddress != updatedUser.address){
                     addressExists.value = await checkAdressExists(updatedUser.address)
                 }
@@ -113,27 +135,37 @@ export default defineComponent({
                     if(exCuit != updatedUser.cuit){
                         cuitExists.value = await checkCuitExists(updatedUser.cuit)
                     }
-                    if(!cuitExists.value){
-                        try{
-                            let separatedAddress = updatedUser.address.split(' ');
-                            let newAddress = separatedAddress.splice(0, separatedAddress.length - 1).join(' ')
-                            let number = separatedAddress[separatedAddress.length - 1]                              
-                            let [lat, long] = await checkLatLong(newAddress, number)
-                            
-                            await db.collection('ParkingUsers').doc(storeUser.uid).update({parkingName: updatedUser.parkingName, cuit: updatedUser.cuit, address: updatedUser.address, location: {lat, long}})
-                            let user = await db.collection('ParkingUsers').doc(storeUser.uid).get()
-
-                            user != undefined && localStorage.setItem('logedUser', JSON.stringify(user.data()))
-                            store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))                     
-                            alert('Usuario actualizado')
-                            edit.value = !edit.value
-                            store.methods.changeLoadingStatus()
-                            nameOK.value = true
-                            cuitOK.value = true
-                            addressOK.value = true
-                        }catch(err){
-                            store.methods.changeLoadingStatus()
-                        }
+                    if(!cuitExists.value){  
+                        if(exPhoneNumber != updatedUser.phoneNumber){
+                            phoneExists.value = await checkPhoneExists(updatedUser.phoneNumber)
+                            if(!phoneExists.value){
+                                try{
+                                    let separatedAddress = updatedUser.address.split(' ');
+                                    let newAddress = separatedAddress.splice(0, separatedAddress.length - 1).join(' ')
+                                    let number = separatedAddress[separatedAddress.length - 1]                              
+                                    let [lat, long] = await checkLatLong(newAddress, number)
+                                    
+                                    await db.collection('ParkingUsers').doc(storeUser.uid).update({parkingName: updatedUser.parkingName, cuit: updatedUser.cuit, phoneNumber: updatedUser.phoneNumber, address: updatedUser.address, location: {lat, long}})
+                                    let user = await db.collection('ParkingUsers').doc(storeUser.uid).get()
+        
+                                    user != undefined && localStorage.setItem('logedUser', JSON.stringify(user.data()))
+                                    store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))                     
+                                    alert('Usuario actualizado')
+                                    edit.value = !edit.value
+                                    store.methods.changeLoadingStatus()
+                                    nameOK.value = true
+                                    cuitOK.value = true
+                                    addressOK.value = true
+                                    phoneOK.value = true
+                                }catch(err){
+                                    store.methods.changeLoadingStatus()
+                                }
+                            }else{// si el telefono ya existe
+                               store.methods.changeLoadingStatus() 
+                            }
+                        }else{ //si el telefono
+                            store.methods.changeLoadingStatus() 
+                        }                      
                     }else{ // si el cuit existe
                         store.methods.changeLoadingStatus()
                     }
@@ -148,6 +180,11 @@ export default defineComponent({
         const checkAdressExists = async (address: string):Promise<Boolean> => {            //metodo que devuelve true en caso de que exista la direccion en algun documento y false en el caso contrario
             const snapshot = await db.collection('ParkingUsers').get()
             return await snapshot.docs.find(user => user.data().address == address) != undefined ? true : false //si no encuentra devuelve false y si encuentra true      
+        }
+
+        const checkPhoneExists = async (phone: string):Promise<Boolean> => {            //metodo que devuelve true en caso de que exista el numero de telefono en algun documento y false en el caso contrario
+            const snapshot = await db.collection('ParkingUsers').get()
+            return await snapshot.docs.find(user => user.data().phoneNumber == phone) != undefined ? true : false //si no encuentra devuelve false y si encuentra true      
         }
 
         const checkCuitExists = async (cuit: string):Promise<Boolean> => {            //metodo que devuelve true en caso de que exista la direccion en algun documento y false en el caso contrario
@@ -173,6 +210,7 @@ export default defineComponent({
             cuitExists,
             addressExists,
             updatedUser,
+            phoneExists,
             cancelEdit
         }
 

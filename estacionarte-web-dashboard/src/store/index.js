@@ -40,6 +40,9 @@ const getters = {
   getUserAddress(){
     return state.user.address;
   },
+  getUserPhoneNumber(){
+    return state.user.phoneNumber;
+  },
   getUserSignedIn(){
     return state.userSignedIn;
   },
