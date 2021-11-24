@@ -128,53 +128,37 @@ export default defineComponent({
             phoneOK.value = updatedUser.phoneNumber.length > 0
 
             if(nameOK.value && cuitOK.value && addressOK.value && phoneOK.value){
-                if(exAddress != updatedUser.address){
-                    addressExists.value = await checkAdressExists(updatedUser.address)
-                }
-                if(!addressExists.value){
-                    if(exCuit != updatedUser.cuit){
-                        cuitExists.value = await checkCuitExists(updatedUser.cuit)
-                    }
-                    if(!cuitExists.value){  
-                        if(exPhoneNumber != updatedUser.phoneNumber){
-                            phoneExists.value = await checkPhoneExists(updatedUser.phoneNumber)
-                            if(!phoneExists.value){
-                                try{
-                                    let separatedAddress = updatedUser.address.split(' ');
-                                    let newAddress = separatedAddress.splice(0, separatedAddress.length - 1).join(' ')
-                                    let number = separatedAddress[separatedAddress.length - 1]                              
-                                    let [lat, long] = await checkLatLong(newAddress, number)
-                                    
-                                    await db.collection('ParkingUsers').doc(storeUser.uid).update({parkingName: updatedUser.parkingName, cuit: updatedUser.cuit, phoneNumber: updatedUser.phoneNumber, address: updatedUser.address, location: {lat, long}})
-                                    let user = await db.collection('ParkingUsers').doc(storeUser.uid).get()
-        
-                                    user != undefined && localStorage.setItem('logedUser', JSON.stringify(user.data()))
-                                    store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))                     
-                                    alert('Usuario actualizado')
-                                    edit.value = !edit.value
-                                    store.methods.changeLoadingStatus()
-                                    nameOK.value = true
-                                    cuitOK.value = true
-                                    addressOK.value = true
-                                    phoneOK.value = true
-                                }catch(err){
-                                    store.methods.changeLoadingStatus()
-                                }
-                            }else{// si el telefono ya existe
-                               store.methods.changeLoadingStatus() 
-                            }
-                        }else{ //si el telefono
-                            store.methods.changeLoadingStatus() 
-                        }                      
-                    }else{ // si el cuit existe
+                exAddress != updatedUser.address ? addressExists.value = await checkAdressExists(updatedUser.address) : addressExists.value = false;                                    
+                exCuit != updatedUser.cuit ? cuitExists.value = await checkCuitExists(updatedUser.cuit) : cuitExists.value = false;                                    
+                exPhoneNumber != updatedUser.phoneNumber ? phoneExists.value = await checkPhoneExists(updatedUser.phoneNumber) : phoneExists.value = false;
+                            
+                if(!addressExists.value && !cuitExists.value && !phoneExists.value){
+                    try{
+                        let separatedAddress = updatedUser.address.split(' ');
+                        let newAddress = separatedAddress.splice(0, separatedAddress.length - 1).join(' ')
+                        let number = separatedAddress[separatedAddress.length - 1]                              
+                        let [lat, long] = await checkLatLong(newAddress, number)
+                        
+                        await db.collection('ParkingUsers').doc(storeUser.uid).update({parkingName: updatedUser.parkingName, cuit: updatedUser.cuit, phoneNumber: updatedUser.phoneNumber, address: updatedUser.address, location: {lat, long}})
+                        let user = await db.collection('ParkingUsers').doc(storeUser.uid).get()
+                        user != undefined && localStorage.setItem('logedUser', JSON.stringify(user.data()))
+                        store.methods.setUser(JSON.parse(localStorage.getItem('logedUser')!))                     
+                        alert('Usuario actualizado')
+                        edit.value = !edit.value
+                        store.methods.changeLoadingStatus()
+                        nameOK.value = true
+                        cuitOK.value = true
+                        addressOK.value = true
+                        phoneOK.value = true
+                    }catch(err){
                         store.methods.changeLoadingStatus()
                     }
-                }else{ //si la direcc ya existe
-                    store.methods.changeLoadingStatus()
+                }else{// si el telefono ya existe
+                   store.methods.changeLoadingStatus() 
                 }
-            }else{ // si hay algun problema con los campos
-                store.methods.changeLoadingStatus()                
-            }
+            }else{ //si el telefono
+                store.methods.changeLoadingStatus() 
+            }                      
         }
 
         const checkAdressExists = async (address: string):Promise<Boolean> => {            //metodo que devuelve true en caso de que exista la direccion en algun documento y false en el caso contrario
